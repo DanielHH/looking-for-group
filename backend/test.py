@@ -1,15 +1,15 @@
 import unittest
-import server
+import app
 import ast
 import json
 
 
 class DataTest(unittest.TestCase):
     def setUp(self):
-        server.app.config['TESTING'] = True
-        self.server = server.app.test_client()
-        server.db.drop_all()
-        server.db.create_all()
+        app.app.config['TESTING'] = True
+        self.server = app.app.test_client()
+        app.db.drop_all()
+        app.db.create_all()
 
     def post_messages(self, token):
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
@@ -35,13 +35,13 @@ class DataTest(unittest.TestCase):
     def login_user(self, email):
         self.server.post('/user/login', headers={'Content-Type': 'application/json'},
                          data=json.dumps({'email': '{0}'.format(email), 'password': 'password'}))
-        user = server.User.query.filter_by(email='{0}'.format(email)).first()
-        token = server.Token.query.filter_by(user_id=user.id).first()
+        user = app.User.query.filter_by(email='{0}'.format(email)).first()
+        token = app.Token.query.filter_by(user_id=user.id).first()
         return token.token
 
     def test_create_users(self):
         self.create_users()
-        users = server.User.query.all()
+        users = app.User.query.all()
         user_list = []
         for user in users:
             user_list.append(user.name)
@@ -50,22 +50,22 @@ class DataTest(unittest.TestCase):
     def test_login_user(self):
         self.create_users()
         token = self.login_user('user@email.com')
-        user = server.User.query.filter_by(name='user').first()
-        test_token = server.Token.query.filter_by(user_id=user.id).first()
+        user = app.User.query.filter_by(name='user').first()
+        test_token = app.Token.query.filter_by(user_id=user.id).first()
         self.assertEqual(token, str(test_token), "Failed in login_user")
 
     def test_logout_user(self):
         self.create_users()
         token = self.login_user('user@email.com')
         self.server.post('/user/logout', headers={"Authorization": token})
-        tokens = server.Token.query.all()
+        tokens = app.Token.query.all()
         self.assertEqual(tokens, [])
 
     def test_post_messages(self):
         self.create_users()
         token = self.login_user('user@email.com')
         self.post_messages(token)
-        messages = server.Message.query.all()
+        messages = app.Message.query.all()
         message_list = []
         for message in messages:
             message_list.append(message.message)
