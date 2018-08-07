@@ -6,14 +6,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,6 +36,7 @@ public class CreateGameActivity extends AppCompatActivity {
 
     ImageView gameAvatar;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,21 +47,17 @@ public class CreateGameActivity extends AppCompatActivity {
         String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
 
         // Capture the layout's TextView and set the string as its text
-        TextView textView = findViewById(R.id.textView);
-        textView.setText(message);
+        TextView gameName = findViewById(R.id.gameName);
+        gameName.setText(message);
 
         addListenerOnButton();
     }
 
     public void addListenerOnButton() {
-
         gameAvatar = findViewById(R.id.imageViewGameAvatar);
-
         gameAvatar.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
-
                 selectImage();
             }
         });
@@ -140,6 +140,24 @@ public class CreateGameActivity extends AppCompatActivity {
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
         cursor.moveToFirst();
         return cursor.getString(column_index);
+    }
+
+    //get gameAvatar, get textDescription, get gameName. Send to database.
+    public void saveNewGame (View view) {
+        Bitmap bitmapGameAvatar = ((BitmapDrawable)gameAvatar.getDrawable()).getBitmap();
+
+        TextView gameName = findViewById(R.id.gameName);
+        String contentGameName = gameName.getText().toString();
+
+        EditText Description = findViewById(R.id.editTextDescription);
+        String contentDescription = Description.getText().toString();
+
+        //TODO: Send bitmapGameAvatar, contentGameName & contentDescription to database.
+
+
+        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+
     }
 
 }
