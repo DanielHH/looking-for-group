@@ -11,6 +11,19 @@ class DataTest(unittest.TestCase):
         app.db.drop_all()
         app.db.create_all()
 
+    def test_post_match(self):
+        self.server.post('/dummy')
+
+        matches = app.Match.query.all()
+        match_list = []
+        for match in matches:
+            match_string = "creator: " + match.started_by +\
+                           " location: " + match.name_location +\
+                           " max players: " + str(match.max_players)
+            match_list.append(match_string)
+
+        self.assertEqual(match_list[0], "creator: daniel location: irblosset max players: 3")
+
     def post_messages(self, token):
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
                          data=json.dumps('A message'))

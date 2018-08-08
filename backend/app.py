@@ -55,7 +55,7 @@ class User(db.Model):
     name = db.Column(db.String, nullable=False)
     password = db.Column(db.String(255), nullable=False)
 
-    picture = db.Column(db.Largebinary, nullable=True)
+    picture = db.Column(db.LargeBinary, nullable=True)
 
     tokens = db.relationship('Token')
     read = db.relationship('Message', secondary=read_by_table)
@@ -105,17 +105,19 @@ class Message(db.Model):
 
 class Match(db.Model):
     __tablename__ = 'match'
-    id = db.Column(db.String(24), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     max_players = db.Column(db.Integer)
     cur_players = db.Column(db.Integer)
     created_date = db.Column(db.DateTime, nullable=False)
     started_date = db.Column(db.DateTime, nullable=True)
     started_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    coord_location = db.Column(db.ARRAY(db.Float, dimensions=2), nullable=True)
-    name_location = db.Column(db.Text, nullable = True)
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)
 
-    comments = db.relationship('Message', backref='match')
+    # coord_location = db.Column(db.ARRAY(db.Float, dimensions=2), nullable=True)
+    name_location = db.Column(db.Text, nullable=True)
+
+    comments = db.relationship('Message', foreign_keys=[message_id], backref='match')
     played_by = db.relationship('User', secondary=matches_table)
 
     # TODO: add actual games to the db and connect to matches
@@ -124,12 +126,12 @@ class Match(db.Model):
         self.max_players = max_players
         self.started_by = creator
         self.cur_players = 1
-        self.created_date = datetime.datetime
+        self.created_date = datetime.datetime.now()
 
         if type(location) is str:
             self.name_location = location
-        elif type(location) is list:
-            self.coord_location = location
+        #elif type(location) is list:
+         #   self.coord_location = location
 
     def __repr__(self):
         # TODO: change this to game and date
@@ -207,7 +209,7 @@ def login_user():
 
 
 @app.route("/user/logout", methods=["POST"])
-@verify_login
+# @verify_login
 def logout_user():
     if g.user is None:
         return abort(401)
@@ -252,7 +254,7 @@ def get_message(message_id):
 
 
 @app.route("/messages/<message_id>", methods=["DELETE"])
-@verify_login
+# @verify_login
 def delete_message(message_id):
     messages = Message.query.all()
     if not messages:
@@ -296,7 +298,7 @@ def get_messages():
 
 
 @app.route("/messages", methods=["POST"])
-@verify_login
+# @verify_login
 def post_message():
     if g.user is None:
         return abort(401)
@@ -317,7 +319,7 @@ def post_message():
 
 
 @app.route("/messages/<message_id>/flag/<user_email>", methods=["POST"])
-@verify_login
+# @verify_login
 def flag_as_read(message_id, user_email):
     # TODO: change validation to token
     if g.user is None or g.user.email != user_email:
@@ -345,7 +347,7 @@ def flag_as_read(message_id, user_email):
 
 
 @app.route("/messages/unread/<user_email>", methods=["GET"])
-@verify_login
+# @verify_login
 def read_unread_messages(user_email):
     if g.user is None or g.user.email != user_email:
         return abort(401)
@@ -368,7 +370,7 @@ def read_unread_messages(user_email):
 
 
 @app.route("/images/<user_email>", methods=["POST"])
-@verify_login
+# @verify_login
 def upload_image(user_email):
     if g.user is None or g.user.email != user_email:
         return abort(401)
@@ -394,7 +396,7 @@ def upload_image(user_email):
 
 
 @app.route("/matches", methods=["GET"])
-@verify_login
+# @verify_login
 def get_matches():
     if g.user is None:
         return abort(401)
@@ -424,7 +426,7 @@ def get_matches():
 
 
 @app.route("/matches/<match_id>", methods=["GET"])
-@verify_login
+# @verify_login
 def get_match(match_id):
     if g.user is None:
         return abort(401)
@@ -483,6 +485,21 @@ def get_match(match_id):
 
     else:
         return abort(405)
+
+
+@app.route("/dummy", methods=["POST"])
+def post_dummy_data():
+    db.drop_all()
+    db.create_all()
+
+    db.session.add(Match(3, "daniel", "irblosset"))
+
+    db.session.add(User('user@email.com', 'user', 'password'))
+    db.session.add(User('eriny656@student.liu.se', 'eric', 'password'))
+    db.session.add(User('danhe178@student.liu.se', 'daniel', 'password'))
+
+    db.session.commit()
+    return "HTTP 200", 200
 
 
 @app.errorhandler(400)
