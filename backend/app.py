@@ -1,9 +1,11 @@
 import os
 import binascii
-from flask import Flask, request, json, jsonify, abort, g
+import datetime
+from flask import Flask, request, json, jsonify, abort, g, flash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
@@ -18,12 +20,120 @@ db = SQLAlchemy(app)
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
 
 SECONDS_IN_ONE_WEEK = 604800
+ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
 
 read_by_table = db.Table('read_by', db.metadata,
                          db.Column('message_id', db.String,
                                    db.ForeignKey('message.id')),
                          db.Column('user_id', db.Integer,
                                    db.ForeignKey('user.id')))
+
+matches_table = db.Table('matched_players', db.metadata,
+                         db.Column('match_id', db.String,
+                                   db.ForeignKey('match.id')),
+                         db.Column('user_id', db.Integer,
+                                   db.ForeignKey('user.id')))
+
+
+class Token(db.Model):
+    __tablename__ = 'token'
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(200))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, token):
+        self.token = token
+
+    def __repr__(self):
+        return self.token
+
+
+class User(db.Model):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(127), unique=True)
+    name = db.Column(db.String, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+
+    picture = db.Column(db.Largebinary, nullable=True)
+
+    tokens = db.relationship('Token')
+    read = db.relationship('Message', secondary=read_by_table)
+    played = db.relationship('Match', secondary=matches_table)
+
+    def __init__(self, email, name, password):
+        self.email = email
+        self.name = name
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
+    def generate_auth_token(self, expiration=SECONDS_IN_ONE_WEEK):
+        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+        token = Token(s.dumps(self.id).decode('utf-8'))
+        token.user_id = self.id
+        self.tokens.append(token)
+        db.session.commit()
+        return str(token)
+
+    def set_picture(self, picture):
+        self.picture = picture
+
+    def __repr__(self):
+        return self.email
+
+
+class Message(db.Model):
+    __tablename__ = 'message'
+    id = db.Column(db.String(24), primary_key=True)
+    message = db.Column(db.String(140), unique=False, nullable=False)
+    date = db.Column(db.DateTime, nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    add_author_id = db.relationship('User', foreign_keys=[author_id])
+    msg_read_by = db.relationship('User', secondary=read_by_table)
+
+    def __init__(self, message, author_id, message_id):
+        self.message = message
+        self.id = message_id
+        self.author_id = author_id
+
+    def __repr__(self):
+        return self.message
+
+
+class Match(db.Model):
+    __tablename__ = 'match'
+    id = db.Column(db.String(24), primary_key=True)
+    max_players = db.Column(db.Integer)
+    cur_players = db.Column(db.Integer)
+    created_date = db.Column(db.DateTime, nullable=False)
+    started_date = db.Column(db.DateTime, nullable=True)
+    started_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    coord_location = db.Column(db.ARRAY(db.Float, dimensions=2), nullable=True)
+    name_location = db.Column(db.Text, nullable = True)
+
+    comments = db.relationship('Message', backref='match')
+    played_by = db.relationship('User', secondary=matches_table)
+
+    # TODO: add actual games to the db and connect to matches
+
+    def __init__(self, max_players, creator, location):
+        self.max_players = max_players
+        self.started_by = creator
+        self.cur_players = 1
+        self.created_date = datetime.datetime
+
+        if type(location) is str:
+            self.name_location = location
+        elif type(location) is list:
+            self.coord_location = location
+
+    def __repr__(self):
+        # TODO: change this to game and date
+        return self.id
 
 
 def verify_login(func):
@@ -53,65 +163,8 @@ def verify_auth_token(token):
     return user
 
 
-class Token(db.Model):
-    __tablename__ = 'token'
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(200))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __init__(self, token):
-        self.token = token
-
-    def __repr__(self):
-        return self.token
-
-
-class User(db.Model):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(127), unique=True)
-    name = db.Column(db.String)
-    password = db.Column(db.String(255))
-
-    tokens = db.relationship('Token')
-    read = db.relationship('Message', secondary=read_by_table)
-
-    def __init__(self, email, name, password):
-        self.email = email
-        self.name = name
-        self.password = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
-    def generate_auth_token(self, expiration=SECONDS_IN_ONE_WEEK):
-        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
-        token = Token(s.dumps(self.id).decode('utf-8'))
-        token.user_id = self.id
-        self.tokens.append(token)
-        db.session.commit()
-        return str(token)
-
-    def __repr__(self):
-        return self.email
-
-
-class Message(db.Model):
-    __tablename__ = 'message'
-    id = db.Column(db.String(24), primary_key=True)
-    message = db.Column(db.String(140), unique=False)
-    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    add_author_id = db.relationship('User', foreign_keys=[author_id])
-    msg_read_by = db.relationship('User', secondary=read_by_table)
-
-    def __init__(self, message, author_id, message_id):
-        self.message = message
-        self.id = message_id
-        self.author_id = author_id
-
-    def __repr__(self):
-        return self.message
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route("/")
@@ -125,7 +178,7 @@ def create_user():
         email = request.get_json()['email']
         name = request.get_json()['name']
         password = request.get_json()['password']
-		# TODO: control for user already exists
+        # TODO: control for user already exists
         user = User(email, name, password)
         db.session.add(user)
         db.session.commit()
@@ -253,7 +306,7 @@ def post_message():
         if len(message) > 140:
             return abort(400)
         # [2:-1] removes extra symbols added by binascii
-		# TODO: control for duplicate message ids
+        # TODO: control for duplicate message ids
         message_id = str(binascii.b2a_hex(os.urandom(12)))[2:-1]
         db.session.add(Message(message, g.user.id, message_id))
         db.session.commit()
@@ -266,7 +319,7 @@ def post_message():
 @app.route("/messages/<message_id>/flag/<user_email>", methods=["POST"])
 @verify_login
 def flag_as_read(message_id, user_email):
-	# TODO: change validation to token
+    # TODO: change validation to token
     if g.user is None or g.user.email != user_email:
         return abort(401)
 
@@ -309,6 +362,124 @@ def read_unread_messages(user_email):
                                         'message': str(message),
                                         'id': message.id})
         return json.dumps(unread_messages)
+
+    else:
+        return abort(405)
+
+
+@app.route("/images/<user_email>", methods=["POST"])
+@verify_login
+def upload_image(user_email):
+    if g.user is None or g.user.email != user_email:
+        return abort(401)
+
+    elif request.method == "POST":
+        if 'file' not in request.files:
+            flash('No file part')
+            return abort(400)
+        file = request.files['file']
+
+        if file.filename == '':
+            flash("No selected file")
+            return abort(400)
+
+        if file and allowed_file(file.filename):
+            user = User.query.filter_by(email=user_email).first()
+            user.set_picture(secure_filename(file.filename))
+            db.session.commit()
+            return "HTTP 200", 200
+
+    else:
+        return abort(405)
+
+
+@app.route("/matches", methods=["GET"])
+@verify_login
+def get_matches():
+    if g.user is None:
+        return abort(401)
+
+    matches = Match.query.all()
+    if not matches:
+        return abort(400)
+
+    if request.method == "GET":
+        match_list = []
+
+        for match in matches:
+            location = match.name_location    # can still be null
+            cur_players = match.cur_players   # can still be null
+            max_players = match.max_players   # can still be null
+            created_date = match.created_date
+            match_id = match.id
+
+            match_list.append({'location': location, 'created_date': created_date,
+                               'cur_players': cur_players, 'max_players': max_players,
+                               'match_id': match_id})
+
+        return json.dumps(match_list)
+
+    else:
+        return abort(405)
+
+
+@app.route("/matches/<match_id>", methods=["GET"])
+@verify_login
+def get_match(match_id):
+    if g.user is None:
+        return abort(401)
+
+    matches = Match.query.all()
+    if not matches:
+        return abort(400)
+
+    match = Match.query.filter_by(id=match_id).first()
+    if not match:
+        return abort(400)
+
+    if request.method == "GET":
+        match_data = {}
+
+        if match.name_location:
+            match_data['location'] = match.name_location
+        elif match.coord_location:
+            match_data['location'] = match.coord_location
+
+        match_data['created_date'] = match.created_date
+        match_data['cur_players'] = match.cur_players
+        match_data['max_players'] = match.max_players
+        match_data['match_id'] = match.id
+        match_data['started_by'] = match.started_by
+        match_data['started_date'] = match.started_date
+
+        player_list = []
+        for player_id in matches_table.query.filter_by(match_id=match.id).first:
+            user_info = User.query.filter_by(id=player_id).first()
+            player_data = {'id': user_info.id,
+                           'name': user_info.name,
+                           'email': user_info.email}
+
+            if user_info.picture:
+                player_data['picture'] = user_info.picture
+
+            player_list.append(player_data)
+
+        match_data['played_by'] = player_list
+
+        comment_list = []
+        for comment_id in match.comments:
+            comment = Message.query.filter_by(id=comment_id).first()
+
+            comment_info = {'id': comment_id,
+                            'author': comment.author_id,
+                            'message': comment.message,
+                            'date': comment.date}
+
+            comment_list.append(comment_info)
+
+        match_data['comments'] = comment_list
+
+        return json.dumps(match_data)
 
     else:
         return abort(405)
