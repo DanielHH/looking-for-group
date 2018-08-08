@@ -51,20 +51,20 @@ public class MainActivity extends AppCompatActivity {
 
     /** Called when the user taps the "Create Game"-button */
     public void createGame(View view) {
-        /*
         Intent intent = new Intent(this, CreateGameActivity.class);
         EditText editText = (EditText) findViewById(R.id.editText);
         String gameName = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, gameName);
         startActivity(intent);
-        */
-        new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
     }
 
     public void goToOpenGames(View view) {
+        /*
         Intent intent = new Intent(this, OpenGamesActivity.class);
 
         startActivity(intent);
+*/
+        new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches");
     }
 
     @Override

@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -64,6 +65,29 @@ public class CreateGameActivity extends AppCompatActivity {
         gameName.setText(message);
 
         addListenerOnButton();
+    }
+    
+    OkHttpClient client = new OkHttpClient();
+    private class SubmitGameData extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String result = "";
+            RequestBody body = RequestBody.create(JSON, params[1]);
+            Request request = new Request.Builder()
+                    .url(params[0])
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                result = response.body().string();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+        protected void onPostExecute(String result) {
+            System.out.println("!!!!!!!!!!!!!!!! " + result + "!!!!!!!!!!!!!!");
+        }
     }
 
     public void addListenerOnButton() {
@@ -174,45 +198,13 @@ public class CreateGameActivity extends AppCompatActivity {
         String contentDescription = Description.getText().toString();
 
         //TODO: Send bitmapGameAvatar, contentGameName & contentDescription to database.
-        // submitData(contentGameAvatar, contentGameName, contentDescription);
-        //TESTTESTTEST
-        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches";
-        String response = "";
-        try {
-            response = testGet(url);
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println(response);
-    }
-
-    OkHttpClient client = new OkHttpClient();
-
-    private String testGet(String url) throws IOException {
-        Request request = new Request.Builder().url(url).build();
-        try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
-        }
-    }
-
-
-
-    String post(String url, String json) throws IOException {
-        RequestBody body = RequestBody.create(JSON, json);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(body)
-                .build();
-        try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
-        }
+        submitData(contentGameAvatar, contentGameName, contentDescription);
     }
 
     private void submitData (String avatar, String gameName, String description) {
         String json = "'gameAvatar':'" + avatar + "','gameName':'" + gameName + "','description':'" + description + "'";
         try {
-            String response = post("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches", json);
-            System.out.println(response);
+            new SubmitGameData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches", json);
         } catch (Exception e) {
             e.printStackTrace();
         }
