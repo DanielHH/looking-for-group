@@ -14,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -145,6 +146,15 @@ public class CreateGameActivity extends AppCompatActivity {
     //get gameAvatar, get textDescription, get gameName. Send to database.
     public void saveNewGame (View view) {
         Bitmap bitmapGameAvatar = ((BitmapDrawable)gameAvatar.getDrawable()).getBitmap();
+
+        final int COMPRESSION_QUALITY = 100;
+        String contentGameAvatar;
+        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
+        bitmapGameAvatar.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
+                byteArrayBitmapStream);
+        byte[] b = byteArrayBitmapStream.toByteArray();
+        contentGameAvatar = Base64.encodeToString(b, Base64.DEFAULT);
+
 
         TextView gameName = findViewById(R.id.gameName);
         String contentGameName = gameName.getText().toString();
