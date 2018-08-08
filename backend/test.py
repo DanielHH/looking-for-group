@@ -24,6 +24,17 @@ class DataTest(unittest.TestCase):
 
         self.assertEqual(match_list[0], "creator: daniel location: irblosset max players: 3")
 
+    def test_get_matches(self):
+        self.server.post('/dummy')
+
+        rv = self.convert_to_literal(self.server.get('/matches'))
+
+        print(rv)
+
+        nv = self.server.get('/matches/' + str(rv[0]['match_id']))
+
+        print(nv)
+
     def post_messages(self, token):
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
                          data=json.dumps('A message'))

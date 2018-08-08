@@ -29,7 +29,7 @@ read_by_table = db.Table('read_by', db.metadata,
                                    db.ForeignKey('user.id')))
 
 matches_table = db.Table('matched_players', db.metadata,
-                         db.Column('match_id', db.String,
+                         db.Column('match_id', db.Integer,
                                    db.ForeignKey('match.id')),
                          db.Column('user_id', db.Integer,
                                    db.ForeignKey('user.id')))
@@ -59,7 +59,9 @@ class User(db.Model):
 
     tokens = db.relationship('Token')
     read = db.relationship('Message', secondary=read_by_table)
-    played = db.relationship('Match', secondary=matches_table)
+    played = db.relationship('Match',
+                             secondary=matches_table,
+                             backref=db.backref('users'))
 
     def __init__(self, email, name, password):
         self.email = email
@@ -118,20 +120,29 @@ class Match(db.Model):
     name_location = db.Column(db.Text, nullable=True)
 
     comments = db.relationship('Message', foreign_keys=[message_id], backref='match')
-    played_by = db.relationship('User', secondary=matches_table)
+    played_by = db.relationship('User',
+                                secondary=matches_table,
+                                backref=db.backref('matches'))
 
     # TODO: add actual games to the db and connect to matches
 
-    def __init__(self, max_players, creator, location):
+    def __init__(self, max_players, creator, location, uid):
         self.max_players = max_players
         self.started_by = creator
         self.cur_players = 1
         self.created_date = datetime.datetime.now()
+        self.played_by.append(uid)
 
         if type(location) is str:
             self.name_location = location
         #elif type(location) is list:
          #   self.coord_location = location
+
+    def join(self, uid):
+        self.played_by.append(uid)
+
+    def __str__(self):
+        return str(self.id)
 
     def __repr__(self):
         # TODO: change this to game and date
@@ -398,9 +409,6 @@ def upload_image(user_email):
 @app.route("/matches", methods=["GET"])
 # @verify_login
 def get_matches():
-    if g.user is None:
-        return abort(401)
-
     matches = Match.query.all()
     if not matches:
         return abort(400)
@@ -428,9 +436,6 @@ def get_matches():
 @app.route("/matches/<match_id>", methods=["GET"])
 # @verify_login
 def get_match(match_id):
-    if g.user is None:
-        return abort(401)
-
     matches = Match.query.all()
     if not matches:
         return abort(400)
@@ -455,8 +460,10 @@ def get_match(match_id):
         match_data['started_date'] = match.started_date
 
         player_list = []
-        for player_id in matches_table.query.filter_by(match_id=match.id).first:
-            user_info = User.query.filter_by(id=player_id).first()
+
+        print(User.query.filter(User.matches.any(id=match_id)).all())
+        for user_info in User.query.filter(User.matches.any(id=match_id)).all():
+            # user_info = User.query.filter_by(email=player_email).first()
             player_data = {'id': user_info.id,
                            'name': user_info.name,
                            'email': user_info.email}
@@ -468,6 +475,10 @@ def get_match(match_id):
 
         match_data['played_by'] = player_list
 
+        print(match_data)
+
+        # TODO: FIX THIS GARBAGE
+        '''
         comment_list = []
         for comment_id in match.comments:
             comment = Message.query.filter_by(id=comment_id).first()
@@ -480,6 +491,7 @@ def get_match(match_id):
             comment_list.append(comment_info)
 
         match_data['comments'] = comment_list
+        '''
 
         return json.dumps(match_data)
 
@@ -492,11 +504,14 @@ def post_dummy_data():
     db.drop_all()
     db.create_all()
 
-    db.session.add(Match(3, "daniel", "irblosset"))
-
     db.session.add(User('user@email.com', 'user', 'password'))
     db.session.add(User('eriny656@student.liu.se', 'eric', 'password'))
     db.session.add(User('danhe178@student.liu.se', 'daniel', 'password'))
+
+    db.session.commit()
+
+    daniel_uid = User.query.filter_by(email='danhe178@student.liu.se').first()
+    db.session.add(Match(3, "daniel", "irblosset", daniel_uid))
 
     db.session.commit()
     return "HTTP 200", 200
