@@ -23,22 +23,25 @@ SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
 
 read_by_table = db.Table('read_by', db.metadata,
-                         db.Column('message_id', db.String,
-                                   db.ForeignKey('message.id')),
-                         db.Column('user_id', db.Integer,
-                                   db.ForeignKey('user.id')))
+                         db.Column('message_id', db.String, db.ForeignKey('message.id')),
+                         db.Column('user_id', db.Integer, db.ForeignKey('user.id')))
+
+comments_table = db.Table('comments', db.metadata,
+                          db.Column('message_id', db.String, db.ForeignKey('message.id')),
+                          db.Column('match_id', db.Integer, db.ForeignKey('match.id')))
 
 matches_table = db.Table('matched_players', db.metadata,
-                         db.Column('match_id', db.Integer,
-                                   db.ForeignKey('match.id')),
-                         db.Column('user_id', db.Integer,
-                                   db.ForeignKey('user.id')))
+                         db.Column('match_id', db.Integer, db.ForeignKey('match.id')),
+                         db.Column('user_id', db.Integer, db.ForeignKey('user.id')))
+
+following_table = db.Table('followed_players', db.metadata,
+                           db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
+                           db.Column('followed_id', db.Integer, db.ForeignKey('user.id')))
 
 
 class Token(db.Model):
     __tablename__ = 'token'
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(200))
+    token = db.Column(db.String(200), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, token):
@@ -51,17 +54,21 @@ class Token(db.Model):
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(127), unique=True)
+    email = db.Column(db.String(127), unique=True, nullable=False)
     name = db.Column(db.String, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-
     picture = db.Column(db.LargeBinary, nullable=True)
 
     tokens = db.relationship('Token')
-    read = db.relationship('Message', secondary=read_by_table)
+    read = db.relationship('Message',
+                           secondary=read_by_table,
+                           backref=db.backref('users'))
     played = db.relationship('Match',
                              secondary=matches_table,
                              backref=db.backref('users'))
+    follows = db.relationship('User',
+                              secondary=following_table,
+                              backref=db.backref('users'))
 
     def __init__(self, email, name, password):
         self.email = email
@@ -82,6 +89,9 @@ class User(db.Model):
     def set_picture(self, picture):
         self.picture = picture
 
+    def follow(self, uid):
+        self.follows.append(uid)
+
     def __repr__(self):
         return self.email
 
@@ -91,15 +101,23 @@ class Message(db.Model):
     id = db.Column(db.String(24), primary_key=True)
     message = db.Column(db.String(140), unique=False, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
-    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    add_author_id = db.relationship('User', foreign_keys=[author_id])
-    msg_read_by = db.relationship('User', secondary=read_by_table)
+    posted_on = db.relationship('Match',
+                                secondary=comments_table,
+                                backref=db.backref('messages'))
+    read_by = db.relationship('User',
+                              secondary=read_by_table,
+                              backref=db.backref('messages'))
 
-    def __init__(self, message, author_id, message_id):
+    def __init__(self, message, author_id, message_id, match_id=None):
         self.message = message
         self.id = message_id
         self.author_id = author_id
+        self.date = datetime.datetime.now()
+
+        if match_id:
+            self.posted_on.append(match_id)
+            #  Posts message as a comment on the match indicated by match_id
 
     def __repr__(self):
         return self.message
@@ -108,18 +126,17 @@ class Message(db.Model):
 class Match(db.Model):
     __tablename__ = 'match'
     id = db.Column(db.Integer, primary_key=True)
-    max_players = db.Column(db.Integer)
-    cur_players = db.Column(db.Integer)
+    max_players = db.Column(db.Integer, nullable=True)  # Value of null implies potentially infinite players
+    cur_players = db.Column(db.Integer, nullable=False)
     created_date = db.Column(db.DateTime, nullable=False)
-    started_date = db.Column(db.DateTime, nullable=True)
+    game_on_date = db.Column(db.DateTime, nullable=True)
     started_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=True)
-
-    # coord_location = db.Column(db.ARRAY(db.Float, dimensions=2), nullable=True)
     name_location = db.Column(db.Text, nullable=True)
 
-    comments = db.relationship('Message', foreign_keys=[message_id], backref='match')
+    comments = db.relationship('Message',
+                               secondary=comments_table,
+                               backref=db.backref('matches'))
     played_by = db.relationship('User',
                                 secondary=matches_table,
                                 backref=db.backref('matches'))
@@ -135,8 +152,6 @@ class Match(db.Model):
 
         if type(location) is str:
             self.name_location = location
-        #elif type(location) is list:
-         #   self.coord_location = location
 
     def join(self, uid):
         self.played_by.append(uid)
@@ -188,14 +203,80 @@ def index():
 @app.route("/user", methods=["POST"])
 def create_user():
     if request.method == "POST":
-        email = request.get_json()['email']
-        name = request.get_json()['name']
-        password = request.get_json()['password']
-        # TODO: control for user already exists
+        data = request.get_json()
+        email = data['email']
+
+        if User.query.filter_by(email=email).first():
+            abort(403)
+            #  403 error means user already exists. Should be handled in frontend.
+
+        name = data['name']
+        password = data['password']
+
         user = User(email, name, password)
         db.session.add(user)
         db.session.commit()
         return 'HTTP 200', 200
+
+    else:
+        return abort(405)
+
+
+@app.route("/user/<user_id>", methods=["GET"])
+def view_profile(user_id):
+    user = User.query.filter_by(id=user_id)
+    if not user:
+        return abort(400)
+
+    if request.method == "GET":
+        data = {'email': user.email,
+                'name': user.name,
+                'picture': user.picture}
+
+        match_list = []
+        for match in Match.query.filter(Match.played_by.any(id=user_id)).all():
+            match_data = {'id': match.id,
+                          'amt_players': match.cur_players,
+                          'game_on_date': match.game_on_date,
+                          'started_by': match.started_by,
+                          'location': match.name_location}
+
+            match_list.append(match_data)
+
+        data['matches_played'] = match_list
+
+        follows_list = []
+        for user in User.query.filter(User.follows.any(id=user_id)).all():
+            user_data = {'id': user.id,
+                         'email': user.email,
+                         'name': user.name,
+                         'picture': user.picture}
+
+            follows_list.append(user_data)
+
+        data['follows'] = follows_list
+
+        return json.dumps(data)
+
+    else:
+        return abort(405)
+
+
+@app.route("/user/<follow_id>/follow", methods=["POST", "GET"])
+@verify_login
+def follow_user(follow_id):
+    # TODO: This needs testing
+    if g.user is None:
+        return abort(401)
+
+    if request.method in ["POST", "GET"]:
+        if g.user.id not in User.query.filter(User.follows.any(id=follow_id)).all():
+            g.user.follows.append(follow_id)
+
+        else:
+            g.user.follows.remove(follow_id)
+
+        return "HTTP 200", 200
 
     else:
         return abort(405)
@@ -220,7 +301,7 @@ def login_user():
 
 
 @app.route("/user/logout", methods=["POST"])
-# @verify_login
+@verify_login
 def logout_user():
     if g.user is None:
         return abort(401)
@@ -252,7 +333,7 @@ def get_message(message_id):
         # message is type Message
         if message:
             read_by = []
-            for usr in message.msg_read_by:
+            for usr in message.read_by:
                 read_by.append(str(usr))
             return jsonify(read_by=read_by,
                            message=str(message),
@@ -265,7 +346,7 @@ def get_message(message_id):
 
 
 @app.route("/messages/<message_id>", methods=["DELETE"])
-# @verify_login
+@verify_login
 def delete_message(message_id):
     messages = Message.query.all()
     if not messages:
@@ -297,7 +378,7 @@ def get_messages():
         # Each message in messages is type Message
         for message in messages:
             read_by = []
-            for usr in message.msg_read_by:
+            for usr in message.read_by:
                 read_by.append(str(usr))
             message_list.append({'read_by': read_by,
                                  'message': str(message),
@@ -309,7 +390,7 @@ def get_messages():
 
 
 @app.route("/messages", methods=["POST"])
-# @verify_login
+@verify_login
 def post_message():
     if g.user is None:
         return abort(401)
@@ -329,11 +410,11 @@ def post_message():
         return abort(405)
 
 
-@app.route("/messages/<message_id>/flag/<user_email>", methods=["POST"])
-# @verify_login
-def flag_as_read(message_id, user_email):
+@app.route("/messages/<message_id>/flag", methods=["POST"])
+@verify_login
+def flag_as_read(message_id):
     # TODO: change validation to token
-    if g.user is None or g.user.email != user_email:
+    if g.user is None:
         return abort(401)
 
     messages = Message.query.all()
@@ -343,11 +424,11 @@ def flag_as_read(message_id, user_email):
     elif request.method == "POST":
         message = Message.query.filter_by(id=message_id).first()
         if message:
-            user = User.query.filter_by(email=user_email).first()
-            if user not in message.msg_read_by:
-                message.msg_read_by.append(user)
+            user = User.query.filter_by(email=g.user.email).first()
+            if user not in message.read_by:
+                message.read_by.append(user)
             else:
-                message.msg_read_by.remove(user)
+                message.read_by.remove(user)
             db.session.commit()
             return "HTTP 200", 200
         else:
@@ -357,10 +438,10 @@ def flag_as_read(message_id, user_email):
         return abort(405)
 
 
-@app.route("/messages/unread/<user_email>", methods=["GET"])
-# @verify_login
-def read_unread_messages(user_email):
-    if g.user is None or g.user.email != user_email:
+@app.route("/messages/unread", methods=["GET"])
+@verify_login
+def read_unread_messages():
+    if g.user is None:
         return abort(401)
 
     elif request.method == "GET":
@@ -368,9 +449,9 @@ def read_unread_messages(user_email):
         messages = Message.query.all()
         for message in messages:
             read_by = []
-            for usr in message.msg_read_by:
+            for usr in message.read_by:
                 read_by.append(str(usr))
-            if user_email not in read_by:
+            if g.user not in read_by:
                 unread_messages.append({'read_by': read_by,
                                         'message': str(message),
                                         'id': message.id})
@@ -381,7 +462,7 @@ def read_unread_messages(user_email):
 
 
 @app.route("/images/<user_email>", methods=["POST"])
-# @verify_login
+@verify_login
 def upload_image(user_email):
     if g.user is None or g.user.email != user_email:
         return abort(401)
@@ -407,7 +488,6 @@ def upload_image(user_email):
 
 
 @app.route("/matches", methods=["GET"])
-# @verify_login
 def get_matches():
     matches = Match.query.all()
     if not matches:
@@ -418,8 +498,8 @@ def get_matches():
 
         for match in matches:
             location = match.name_location    # can still be null
-            cur_players = match.cur_players   # can still be null
             max_players = match.max_players   # can still be null
+            cur_players = match.cur_players
             created_date = match.created_date
             match_id = match.id
 
@@ -433,8 +513,30 @@ def get_matches():
         return abort(405)
 
 
+@app.route("/matches", methods=["POST"])
+@verify_login
+def post_match():
+    if g.user is None:
+        return abort(401)
+
+    if request.method == "POST":
+        data = request.get_json()
+
+        location = data['location']
+        max_players = data['max_players']
+
+        # TODO: Make players connect a game_id from boardgamegeek to the desired match
+        game_name = data['game_name']
+
+        db.session.add(Match(max_players, g.user, location, User.query.filter_by(email=g.user).first()))
+
+        return "HTTP 200", 200
+
+    else:
+        return abort(405)
+
+
 @app.route("/matches/<match_id>", methods=["GET"])
-# @verify_login
 def get_match(match_id):
     matches = Match.query.all()
     if not matches:
@@ -445,55 +547,86 @@ def get_match(match_id):
         return abort(400)
 
     if request.method == "GET":
-        match_data = {}
+        match_data = {'location': match.name_location,
+                      'created_date': match.created_date,
+                      'cur_players': match.cur_players,
+                      'max_players': match.max_players,
+                      'match_id': match.id,
+                      'started_by': match.started_by,
+                      'game_on_date': match.game_on_date}
 
-        if match.name_location:
-            match_data['location'] = match.name_location
-        elif match.coord_location:
-            match_data['location'] = match.coord_location
-
-        match_data['created_date'] = match.created_date
-        match_data['cur_players'] = match.cur_players
-        match_data['max_players'] = match.max_players
-        match_data['match_id'] = match.id
-        match_data['started_by'] = match.started_by
-        match_data['started_date'] = match.started_date
-
+        #  Get all players currently in the lobby for the game
         player_list = []
+        for user in User.query.filter(User.matches.any(id=match_id)).all():
+            player_data = {'id': user.id,
+                           'name': user.name,
+                           'email': user.email}
 
-        print(User.query.filter(User.matches.any(id=match_id)).all())
-        for user_info in User.query.filter(User.matches.any(id=match_id)).all():
-            # user_info = User.query.filter_by(email=player_email).first()
-            player_data = {'id': user_info.id,
-                           'name': user_info.name,
-                           'email': user_info.email}
-
-            if user_info.picture:
-                player_data['picture'] = user_info.picture
+            if user.picture:
+                player_data['picture'] = user.picture
 
             player_list.append(player_data)
 
         match_data['played_by'] = player_list
 
-        print(match_data)
-
-        # TODO: FIX THIS GARBAGE
-        '''
+        #  Get all comments posted on the current game
         comment_list = []
-        for comment_id in match.comments:
-            comment = Message.query.filter_by(id=comment_id).first()
-
-            comment_info = {'id': comment_id,
+        for comment in Message.query.filter(Message.matches.any(id=match_id)).all():
+            comment_data = {'id': comment.id,
                             'author': comment.author_id,
                             'message': comment.message,
                             'date': comment.date}
 
-            comment_list.append(comment_info)
+            comment_list.append(comment_data)
 
         match_data['comments'] = comment_list
-        '''
 
         return json.dumps(match_data)
+
+    else:
+        return abort(405)
+
+
+@app.route("/matches/<match_id>", methods=["POST"])
+@verify_login
+def post_comment(match_id):
+    if g.user is None:
+        return abort(401)
+
+    match = Match.query.filter_by(id=match_id).first()
+    if not match:
+        return abort(400)
+
+    if request.method == "POST":
+        comment = request.get_json()
+        if len(comment) > 140:
+            return abort(400)
+        # [2:-1] removes extra symbols added by binascii
+        # TODO: control for duplicate message ids
+        message_id = str(binascii.b2a_hex(os.urandom(12)))[2:-1]
+        db.session.add(Message(comment, g.user.id, message_id, match_id))
+        db.session.commit()
+
+        return "HTTP 200", 200
+
+    else:
+        return abort(405)
+
+
+@app.route("/matches/<match_id>/join", methods=["GET", "POST"])
+@verify_login
+def join_match(match_id):
+    if g.user is None:
+        return abort(401)
+
+    if request.method in ["GET", "POST"]:
+        if match_id not in User.query.filter(User.played.any(id=match_id)).all():
+            g.user.plays.append(match_id)
+
+        else:
+            g.user.plays.remove(match_id)
+
+        return "HTTP 200", 200
 
     else:
         return abort(405)

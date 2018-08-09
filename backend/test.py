@@ -119,34 +119,40 @@ class DataTest(unittest.TestCase):
         rv = self.convert_to_literal(self.server.get('/messages'))
         message_one_id = rv[0]["id"]
         message_two_id = rv[1]["id"]
+        message_three_id = rv[2]["id"]
         self.server.post('/user/logout', headers={"Authorization": user_token})
         eriny656_token = self.login_user('eriny656@student.liu.se')
-        self.server.post('/messages/{0}/flag/eriny656'.format(message_one_id),
+        self.server.post('/messages/{0}/flag'.format(message_one_id),
                          headers={'Authorization': eriny656_token})
         self.server.post('/user/logout', headers={"Authorization": eriny656_token})
-        self.server.post('/messages/{0}/flag/somon123'.format(message_two_id),
+        self.server.post('/messages/{0}/flag'.format(message_two_id),
                          headers={'Authorization': somon123_token})
         self.server.post('/user/logout', headers={"Authorization": somon123_token})
-        rv = self.convert_to_literal(self.server.get('/messages'))
-        self.assertEqual(['eriny656'], rv[0]['read_by'], "failed in flag_as_read")
-        self.assertEqual(['somon123'], rv[1]['read_by'], "failed in flag_as_read")
-        self.assertEqual([], rv[2]['read_by'], "failed in flag_as_read")
+        message_one = self.convert_to_literal(self.server.get('/messages/{0}'.format(message_one_id)))
+        message_two = self.convert_to_literal(self.server.get('/messages/{0}'.format(message_two_id)))
+        message_three = self.convert_to_literal(self.server.get('/messages/{0}'.format(message_three_id)))
+        self.assertEqual(['eriny656@student.liu.se'], message_one['read_by'], "failed in flag_as_read")
+        self.assertEqual(['somon123@student.liu.se'], message_two['read_by'], "failed in flag_as_read")
+        self.assertEqual([], message_three['read_by'], "failed in flag_as_read")
 
     def test_get_unread(self):
+        # TODO: fix
         self.create_users()
-        token = self.login_user('user')
-        self.post_messages(token)
+        user_token = self.login_user('user@email.com')
+        self.post_messages(user_token)
         rv = self.convert_to_literal(self.server.get('/messages'))
         message_one_id = rv[0]["id"]
         message_two_id = rv[1]["id"]
-        self.server.post('/messages/{0}/flag/user'.format(message_one_id), headers={"Authorization": token})
-        self.server.post('/messages/{0}/flag/user'.format(message_two_id), headers={"Authorization": token})
-        rv = self.convert_to_literal(self.server.get('/messages/unread/user', headers={"Authorization": token}))
+        eriny656_token = self.login_user('eriny656@student.liu.se')
+        self.server.post('/messages/{0}/flag'.format(message_one_id), headers={"Authorization": eriny656_token})
+        self.server.post('/messages/{0}/flag'.format(message_two_id), headers={"Authorization": eriny656_token})
+        rv = self.convert_to_literal(self.server.get('/messages/unread', headers={"Authorization": eriny656_token}))
         self.assertEqual('Another message', rv[0]['message'], "failed in get_unread")
 
     def test_delete_message(self):
+        # TODO: fix
         self.create_users()
-        token = self.login_user('user')
+        token = self.login_user('user@email.com')
         self.post_messages(token)
         rv = self.convert_to_literal(self.server.get('/messages'))
         message_one_id = rv[0]["id"]
@@ -162,7 +168,7 @@ class DataTest(unittest.TestCase):
 
     def test_long_message_post(self):
         self.create_users()
-        token = self.login_user('user')
+        token = self.login_user('user@email.com')
         rv = self.server.post('/messages', headers={'Content-Type': 'application/json',
                                                     'Authorization': token}, data=json.dumps('A message longer ' +
                 'than 140 characters..............................................................................' +
@@ -171,7 +177,7 @@ class DataTest(unittest.TestCase):
 
     def test_messages_delete(self):
         self.create_users()
-        token = self.login_user('user')
+        token = self.login_user('user@email.com')
         resp = self.server.delete('/messages', headers={'Authorization': token})
         self.assertEqual(resp.status_code, 405, 'Failed in improper method to /messages')
 
