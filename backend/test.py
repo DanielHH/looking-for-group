@@ -11,30 +11,6 @@ class DataTest(unittest.TestCase):
         app.db.drop_all()
         app.db.create_all()
 
-    def test_post_match(self):
-        self.server.post('/dummy')
-
-        matches = app.Match.query.all()
-        match_list = []
-        for match in matches:
-            match_string = "creator: " + match.started_by +\
-                           " location: " + match.name_location +\
-                           " max players: " + str(match.max_players)
-            match_list.append(match_string)
-
-        self.assertEqual(match_list[0], "creator: daniel location: irblosset max players: 3")
-
-    def test_get_matches(self):
-        self.server.post('/dummy')
-
-        rv = self.convert_to_literal(self.server.get('/matches'))
-
-        print(rv)
-
-        nv = self.server.get('/matches/' + str(rv[0]['match_id']))
-
-        print(nv)
-
     def post_messages(self, token):
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
                          data=json.dumps('A message'))
@@ -42,6 +18,14 @@ class DataTest(unittest.TestCase):
                          data=json.dumps('A second message'))
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
                          data=json.dumps('Another message'))
+
+    def post_matches(self, token):
+        self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
+                         data=json.dumps({'location': 'here', 'max_players': 3, 'game_name': 'Robot Wars'}))
+        self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
+                         data=json.dumps({'location': 'there', 'max_players': 5, 'game_name': 'One Night Werewolf'}))
+        self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
+                         data=json.dumps({'location': 'everywhere', 'max_players': None, 'game_name': 'Robot Wars'}))
 
     def convert_to_literal(self, rv):
         rv = rv.data.decode(encoding='utf-8')
@@ -165,6 +149,28 @@ class DataTest(unittest.TestCase):
         rv = self.convert_to_literal(self.server.get('/messages'))
         message_three = self.convert_to_literal(self.server.get('/messages/{0}'.format(message_three_id)))
         self.assertEqual(rv[0], message_three, "Failed in delete_message")
+
+    def test_post_matches(self):
+        self.create_users()
+        token = self.login_user('user@email.com')
+        self.post_matches(token)
+
+        rv = json.loads(self.server.get('/matches').data.decode(encoding='utf-8'))
+
+        self.assertEqual(rv[0]['location'], 'here', 'Failed in post matches')
+        self.assertEqual(rv[0]['match_id'], 1, 'Failed in post matches')
+        self.assertEqual(rv[0]['max_players'], 3, 'Failed in post matches')
+
+    def test_get_match(self):
+        self.create_users()
+        token = self.login_user('user@email.com')
+        self.post_matches(token)
+
+        rv = json.loads(self.server.get('/matches/1').data.decode(encoding='utf-8'))
+
+        self.assertEqual(rv['location'], 'here', 'Failed in post matches')
+        self.assertEqual(rv['match_id'], 1, 'Failed in post matches')
+        self.assertEqual(rv['max_players'], 3, 'Failed in post matches')
 
     def test_long_message_post(self):
         self.create_users()

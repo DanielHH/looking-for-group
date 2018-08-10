@@ -34,9 +34,9 @@ matches_table = db.Table('matched_players', db.metadata,
                          db.Column('match_id', db.Integer, db.ForeignKey('match.id')),
                          db.Column('user_id', db.Integer, db.ForeignKey('user.id')))
 
-following_table = db.Table('followed_players', db.metadata,
-                           db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
-                           db.Column('followed_id', db.Integer, db.ForeignKey('user.id')))
+follow_table = db.Table('follow', db.metadata,
+                           db.Column('follower_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                           db.Column('followed_id', db.Integer, db.ForeignKey('user.id'), primary_key=True))
 
 
 class Token(db.Model):
@@ -66,9 +66,6 @@ class User(db.Model):
     played = db.relationship('Match',
                              secondary=matches_table,
                              backref=db.backref('users'))
-    follows = db.relationship('User',
-                              secondary=following_table,
-                              backref=db.backref('users'))
 
     def __init__(self, email, name, password):
         self.email = email
@@ -90,7 +87,8 @@ class User(db.Model):
         self.picture = picture
 
     def follow(self, uid):
-        self.follows.append(uid)
+        db.session.add(db.Follow(follower_id=self.id, followed_id=uid))
+        db.session.commit()
 
     def __repr__(self):
         return self.email
@@ -481,6 +479,7 @@ def upload_image(user_email):
             user = User.query.filter_by(email=user_email).first()
             user.set_picture(secure_filename(file.filename))
             db.session.commit()
+
             return "HTTP 200", 200
 
     else:
@@ -528,7 +527,8 @@ def post_match():
         # TODO: Make players connect a game_id from boardgamegeek to the desired match
         game_name = data['game_name']
 
-        db.session.add(Match(max_players, g.user, location, User.query.filter_by(email=g.user).first()))
+        db.session.add(Match(max_players, g.user.email, location, g.user))
+        db.session.commit()
 
         return "HTTP 200", 200
 
