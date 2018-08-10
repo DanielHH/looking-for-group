@@ -64,7 +64,10 @@ public class MainActivity extends AppCompatActivity {
 
         startActivity(intent);
 */
-        new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches");
+        Intent intent = new Intent(this, RegisterUserActivity.class);
+        startActivity(intent);
+
+       // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
     }
 
     @Override

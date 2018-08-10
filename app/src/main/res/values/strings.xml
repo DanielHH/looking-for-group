@@ -10,6 +10,14 @@
     /*Create new game page*/
     <string name="add_description">Add a description...</string>
     <string name="button_save">Save</string>
+
+    /*Register new user*/
+    <string name="name_register">Name</string>
+    <string name="email_register">Email</string>
+    <string name="password_register">Password</string>
+    <string name="password_repeat_register">Repeat Password</string>
+    <string name="button_register">Register</string>
+    <string name="headline_register_user">Register User</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
