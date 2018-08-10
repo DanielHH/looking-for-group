@@ -8,8 +8,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +24,11 @@ import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class CreateGameActivity extends AppCompatActivity {
 
@@ -34,6 +39,8 @@ public class CreateGameActivity extends AppCompatActivity {
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
+
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     ImageView gameAvatar;
 
@@ -52,6 +59,29 @@ public class CreateGameActivity extends AppCompatActivity {
         gameName.setText(message);
 
         addListenerOnButton();
+    }
+
+    OkHttpClient client = new OkHttpClient();
+    private class SubmitGameData extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String result = "";
+            RequestBody body = RequestBody.create(JSON, params[1]);
+            Request request = new Request.Builder()
+                    .url(params[0])
+                    .post(body)
+                    .build();
+            try (Response response = client.newCall(request).execute()) {
+                result = response.body().string();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+        protected void onPostExecute(String result) {
+            System.out.println("!!!!!!!!!!!!!!!! " + result + "!!!!!!!!!!!!!!");
+        }
     }
 
     public void addListenerOnButton() {
@@ -155,7 +185,6 @@ public class CreateGameActivity extends AppCompatActivity {
         byte[] b = byteArrayBitmapStream.toByteArray();
         contentGameAvatar = Base64.encodeToString(b, Base64.DEFAULT);
 
-
         TextView gameName = findViewById(R.id.gameName);
         String contentGameName = gameName.getText().toString();
 
@@ -163,11 +192,17 @@ public class CreateGameActivity extends AppCompatActivity {
         String contentDescription = Description.getText().toString();
 
         //TODO: Send bitmapGameAvatar, contentGameName & contentDescription to database.
-
-
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-
+        submitData(contentGameAvatar, contentGameName, contentDescription);
     }
+
+    private void submitData (String avatar, String gameName, String description) {
+        String json = "'gameAvatar':'" + avatar + "','gameName':'" + gameName + "','description':'" + description + "'";
+        try {
+            new SubmitGameData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches", json);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }
