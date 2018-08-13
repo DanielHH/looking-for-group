@@ -245,10 +245,10 @@ public class RegisterUserActivity extends AppCompatActivity {
 
 
         // Example registry for tests
-        /*
-        String email = "marks@goh.com";
+/*
+        String email = "daniel@gos.com";
         String name = "pruttis";
-        String password = "sdjhhuo";
+        String password = "danielpw";
         */
         // TODO: format correctly for sending with used library
          return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\",\"profileAvatar\":\"" + contentProfileAvatar + "\"}";

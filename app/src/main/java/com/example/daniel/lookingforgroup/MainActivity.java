@@ -38,14 +38,14 @@ public class MainActivity extends AppCompatActivity {
 
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
     }
-/*
+
     public void logout(View view) {
 
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
 
     }
-*/
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

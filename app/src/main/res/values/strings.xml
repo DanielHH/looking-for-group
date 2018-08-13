@@ -7,6 +7,7 @@
     <string name="button_create_game">Create new game</string>
     <string name="title_activity_open_games">OpenGames</string>
     <string name="title_activity_register_user">RegisterUser</string>
+    <string name="title_activity_login">Login</string>
     <string name="logout">Log out</string>
 
     /*Create new game page*/

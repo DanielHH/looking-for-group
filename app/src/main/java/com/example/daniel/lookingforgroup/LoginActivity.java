@@ -51,12 +51,11 @@ public class LoginActivity extends AppCompatActivity {
         TextView tPassword = findViewById(R.id.passwordLogin);
         String password = tPassword.getText().toString();
 
-
         // Example login for tests
-        /*
-        String email = "marks@goh.com";
-        String password = "sdjhhuo";
-        */
+/*
+        String email = "daniel@gos.com";
+        String password = "danielpw";
+*/
         return "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
 
         //return "{'email':'" + email + "','password':'" + password + "'}";
@@ -68,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
         String json = getFormattedDataString();
         if (json != "") {
             try {
-                new LoginActivity.SubmitProfileData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user", json);
+                new LoginActivity.SubmitProfileData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user/login", json);
             } catch (Exception e) {
                 e.printStackTrace();
             }
