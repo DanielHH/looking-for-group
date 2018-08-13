@@ -64,9 +64,7 @@ public class RegisterUserActivity extends AppCompatActivity {
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: implement sending data to server
                 submitData();
-
             }
         });
     }
