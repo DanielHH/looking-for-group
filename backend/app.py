@@ -19,6 +19,8 @@ db = SQLAlchemy(app)
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
 
+DEBUG = True
+
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
 
@@ -202,6 +204,10 @@ def index():
 def create_user():
     if request.method == "POST":
         data = request.get_json()
+
+        if DEBUG:
+            print("json: " + data)
+
         email = data['email']
 
         if User.query.filter_by(email=email).first():
@@ -214,7 +220,42 @@ def create_user():
         user = User(email, name, password)
         db.session.add(user)
         db.session.commit()
+
+        if DEBUG:
+            print("uid: " + user.id)
+            print("email: " + user.email)
+            print("name: " + user.name)
+            print("password: " + user.password)
+
         return 'HTTP 200', 200
+
+    else:
+        return abort(405)
+
+
+@app.route("/user/login", methods=["POST"])
+def login_user():
+    if request.method == "POST":
+        data = request.get_json()
+
+        if DEBUG:
+            print("json: " + data)
+
+        email = data['email']
+        password = data['password']
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return "email or password incorrect"
+        elif user.check_password(password):
+            token = user.generate_auth_token()
+
+            if DEBUG:
+                print("user: " + user.email)
+                print("token: " + token)
+
+            return json.dumps({'token': token})
+        else:
+            return "email or password incorrect"
 
     else:
         return abort(405)
@@ -275,24 +316,6 @@ def follow_user(follow_id):
             g.user.follows.remove(follow_id)
 
         return "HTTP 200", 200
-
-    else:
-        return abort(405)
-
-
-@app.route("/user/login", methods=["POST"])
-def login_user():
-    if request.method == "POST":
-        email = request.get_json()['email']
-        password = request.get_json()['password']
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            return "email or password incorrect"
-        elif user.check_password(password):
-            token = user.generate_auth_token()
-            return json.dumps({'token': token})
-        else:
-            return "email or password incorrect"
 
     else:
         return abort(405)
