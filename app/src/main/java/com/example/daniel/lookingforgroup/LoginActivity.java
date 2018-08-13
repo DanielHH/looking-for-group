@@ -1,5 +1,6 @@
 package com.example.daniel.lookingforgroup;
 
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -96,7 +97,14 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(String result) {
-            System.out.println("!!!!!!!!!!!!!!!! " + result + "!!!!!!!!!!!!!!");
+            System.out.println("Token value: " + result);
+            SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+            sp.edit().putString("token", result).commit();
+
+            /* HOW TO ACCESS TOKEN:
+                SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+                String token = sp.getString("token","");
+             */
         }
     }
 
