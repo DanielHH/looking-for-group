@@ -33,7 +33,7 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_open_games" />
+    <include layout="@layout/item_match" />
     <!--
        <android.support.design.widget.FloatingActionButton
            android:id="@+id/fab"
