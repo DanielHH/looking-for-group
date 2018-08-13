@@ -206,7 +206,7 @@ def create_user():
         data = request.get_json()
 
         if DEBUG:
-            print("json: " + data)
+            print("json: " + json.dumps(data))
 
         email = data['email']
 
@@ -222,7 +222,7 @@ def create_user():
         db.session.commit()
 
         if DEBUG:
-            print("uid: " + user.id)
+            print("uid: " + str(user.id))
             print("email: " + user.email)
             print("name: " + user.name)
             print("password: " + user.password)
@@ -239,7 +239,7 @@ def login_user():
         data = request.get_json()
 
         if DEBUG:
-            print("json: " + data)
+            print("json: " + json.dumps(data))
 
         email = data['email']
         password = data['password']
