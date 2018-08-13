@@ -36,7 +36,7 @@
                 android:value=".MainActivity" />
         </activity>
         <activity
-            android:name=".OpenGamesActivity"
+            android:name=".matches.OpenGamesActivity"
             android:label="@string/title_activity_open_games"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
