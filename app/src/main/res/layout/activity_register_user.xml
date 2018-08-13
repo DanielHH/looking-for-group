@@ -54,6 +54,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/passwordRegister" />
 
+    <!-- TODO: Make button follow and always be above the keyboard -->
     <Button
         android:id="@+id/buttonRegister"
         android:layout_width="wrap_content"

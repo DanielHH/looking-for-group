@@ -197,45 +197,77 @@ public class RegisterUserActivity extends AppCompatActivity {
 
     private String getFormattedDataString() {
         //TODO: Fix image.
-        final int COMPRESSION_QUALITY = 100;
-        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
-                byteArrayBitmapStream);
-        byte[] b = byteArrayBitmapStream.toByteArray();
-        String contentProfileAvatar = Base64.encodeToString(b, Base64.DEFAULT);
+        String contentProfileAvatar;
+        if (bitmap != null) {
+            final int COMPRESSION_QUALITY = 5;
+            ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
+                    byteArrayBitmapStream);
+            byte[] b = byteArrayBitmapStream.toByteArray();
+            contentProfileAvatar = Base64.encodeToString(b, Base64.DEFAULT);
+        }
+        else {
+            contentProfileAvatar = "";
+        }
 
-        String email = findViewById(R.id.emailRegister).toString();
-        if(!isEmailValid(email)) {
+        // Comment out the following code to use test-register info.
+
+        TextView tName = findViewById(R.id.nameRegister);
+        String name = tName.getText().toString();
+        if (name.equals("")) {
+            Toast.makeText(this, "There's no name!", Toast.LENGTH_SHORT).show();
             return "";
         }
 
-        String name = findViewById(R.id.nameRegister).toString();
+        TextView tEmail = findViewById(R.id.emailRegister);
+        String email = tEmail.getText().toString();
+        if (!isEmailValid(email)) {
+            Toast.makeText(this, "Not a valid email", Toast.LENGTH_SHORT).show();
+            return "";
+        }
 
-        String password = findViewById(R.id.passwordRegister).toString();
-        String passwordRepeat = findViewById(R.id.passwordRepeatRegister).toString();
+        TextView tPassword = findViewById(R.id.passwordRegister);
+        String password = tPassword.getText().toString();
+
+        TextView tPasswordRepeat = findViewById(R.id.passwordRepeatRegister);
+        String passwordRepeat = tPasswordRepeat.getText().toString();
+
+        if (!isPasswordValid(password)) {
+            Toast.makeText(this, "Password has to consist of at least 7 characters.", Toast.LENGTH_SHORT).show();
+            return "";
+        }
 
         //TODO: Function for showing if password == repeated password, else toast an error message.
         if (!password.equals(passwordRepeat)) {
-            //Toast.makeText(this, "Passwords does not match!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Passwords do not match!", Toast.LENGTH_SHORT).show();
             return "";
         }
 
+        // Comment outend.
+
+
+        // Example registry for tests
+        /*
+        String email = "marks@goh.com";
+        String name = "pruttis";
+        String password = "sdjhhuo";
+        */
         // TODO: format correctly for sending with used library
-        return "{'email':'" + email + "','name':'" + name + "','password':'" + password + "','profileAvatar':'" + contentProfileAvatar + "'}";
+         return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\",\"profileAvatar\":\"" + contentProfileAvatar + "\"}";
 
-    }
+        //return "{'email':'" + email + "','name':'" + name + "','password':'" + password + "','profileAvatar':'" + contentProfileAvatar + "'}";
 
-    private boolean isEmailValid(String email) {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
 
     private void submitData () {
         String json = getFormattedDataString();
-        try {
-            new RegisterUserActivity.SubmitProfileData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user", json);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (json != "") {
+            try {
+                new RegisterUserActivity.SubmitProfileData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user", json);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -245,10 +277,12 @@ public class RegisterUserActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
             String result = "";
             RequestBody body = RequestBody.create(JSON, params[1]);
+          //  System.out.println(body);
             Request request = new Request.Builder()
                     .url(params[0])
                     .post(body)
                     .build();
+            // System.out.println(request);
             try (Response response = client.newCall(request).execute()) {
                 result = response.body().string();
             } catch (Exception e) {
@@ -261,5 +295,14 @@ public class RegisterUserActivity extends AppCompatActivity {
             System.out.println("!!!!!!!!!!!!!!!! " + result + "!!!!!!!!!!!!!!");
         }
     }
+
+    private boolean isEmailValid(String email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private boolean isPasswordValid(String password) {
+        return password.length() > 6;
+    }
+
 
 }
