@@ -1,11 +1,11 @@
 package com.example.daniel.lookingforgroup.matches;
 
-import android.util.Pair;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 public class Match {
     private String gameName;
@@ -20,30 +20,37 @@ public class Match {
         this.gameName = gameName;
     }
 
-    private Match(String gameName, String location, int maxPlayers, int curPlayers,
-                  Date createdDate, int matchId) {
-        this.gameName = gameName;
-        this.location = location;
-        this.maxPlayers = maxPlayers;
-        this.curPlayers = curPlayers;
-        this.createdDate = createdDate;
-        this.matchId = matchId;
+    private Match(JSONObject matchData) {
+        this.gameName = "dummy";
+
+        try {
+            this.location = (String) matchData.get("location");
+            this.maxPlayers = (Integer) matchData.get("max_players");
+            this.curPlayers = (Integer) matchData.get("cur_players");
+            this.createdDate = (Date) matchData.get("created_date");
+            this.matchId = (Integer) matchData.get("match_id");
+        } catch (Exception e) {
+            System.err.println(e.toString());
+        }
     }
 
-    public String getgameName() {
+    public String getName() {
         return gameName;
     }
 
-    private static int lastMatchId = 0;
-
-    public static void populateMatchList(List<Map> matches) {
-        ArrayList<Match> matchData = new ArrayList<Match>();
-
-        for (Map match: matches){
-            String location = (String) match.get("location");
-            
-        }
+    public Integer getCurrentPlayers() {
+        return curPlayers;
     }
+
+    public Integer getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    private static int lastMatchId = 0;
 
     public static ArrayList<Match> createMatchList(int numMatches) {
         ArrayList<Match> matches = new ArrayList<Match>();
@@ -53,5 +60,20 @@ public class Match {
         }
 
         return matches;
+    }
+
+    public static ArrayList<Match> createMatchList(JSONArray matches) {
+        ArrayList<Match> matchList = new ArrayList<Match>();
+
+        for(int i = 0; i < matches.length(); ++i) {
+            try {
+                matchList.add(new Match(matches.getJSONObject(i)));
+            } catch (JSONException e) {
+                System.err.println("Error on get match object at index " + i);
+                System.err.println(e.toString());
+            }
+        }
+
+        return matchList;
     }
 }

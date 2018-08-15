@@ -6,10 +6,11 @@ import android.support.v7.widget.RecyclerView.Adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.daniel.lookingforgroup.R;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -17,23 +18,35 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
     public class ViewHolder extends RecyclerView.ViewHolder {
         // Set member variables for all views to be set as row is rendered
 
-        public TextView myTextView;
-        public Button myButton;
+        public TextView gameName;
+
+        public TextView location;
+
+        public TextView currentPlayers;
+        public TextView maxPlayers;
 
         // This will find all subviews in the row and set them for each row
         public ViewHolder(View itemView) {
             super(itemView);
+            View fractionView = (View) itemView.findViewById(R.id.item_fraction);
 
-            myTextView = (TextView) itemView.findViewById(R.id.game_name);
-            myButton = (Button) itemView.findViewById(R.id.game_button);
+            gameName = (TextView) itemView.findViewById(R.id.game_name);
+            location = (TextView) itemView.findViewById(R.id.location);
+            currentPlayers = (TextView) fractionView.findViewById(R.id.fracNum);
+            maxPlayers = (TextView) fractionView.findViewById(R.id.fracDen);
         }
     }
 
     private List<Match> matches;
+    private JSONObject matchData;
 
     // Constructor to be fed all data to be shown
     public MatchesAdapter(List<Match> matches) {
         this.matches = matches;
+    }
+
+    public MatchesAdapter(JSONObject matches){
+        this.matchData = matches;
     }
 
     @Override
@@ -51,12 +64,17 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
     public void onBindViewHolder(MatchesAdapter.ViewHolder viewHolder, int position) {
         Match match = matches.get(position);
 
-        TextView textView = viewHolder.myTextView;
-        textView.setText(match.getName());
+        TextView gameName = viewHolder.gameName;
+        gameName.setText(match.getName());
 
-        Button button = viewHolder.myButton;
-        button.setText(position);
-        button.setEnabled(true);
+        TextView location = viewHolder.location;
+        location.setText(match.getLocation());
+
+        TextView currentPlayers = viewHolder.currentPlayers;
+        TextView maxPlayers = viewHolder.maxPlayers;
+
+        currentPlayers.setText(match.getCurrentPlayers());
+        maxPlayers.setText(match.getMaxPlayers());
     }
 
     @Override

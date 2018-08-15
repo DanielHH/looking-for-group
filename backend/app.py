@@ -143,9 +143,9 @@ class Match(db.Model):
 
     # TODO: add actual games to the db and connect to matches
 
-    def __init__(self, max_players, creator, location, uid):
+    def __init__(self, max_players, location, uid):
         self.max_players = max_players
-        self.started_by = creator
+        self.started_by = uid
         self.cur_players = 1
         self.created_date = datetime.datetime.now()
         self.played_by.append(uid)
@@ -529,6 +529,13 @@ def get_matches():
                                'cur_players': cur_players, 'max_players': max_players,
                                'match_id': match_id})
 
+            if DEBUG:
+                print("location: " + location)
+                print("created_date: " + created_date)
+                print("cur_players: " + cur_players)
+                print("max_players: " + max_players)
+                print("match_id: " + match_id)
+
         return json.dumps(match_list)
 
     else:
@@ -667,7 +674,12 @@ def post_dummy_data():
     db.session.commit()
 
     daniel_uid = User.query.filter_by(email='danhe178@student.liu.se').first()
-    db.session.add(Match(3, "daniel", "irblosset", daniel_uid))
+    eric_uid = User.query.filter_by(email='eriny656@student.liu.se').first()
+    user_uid = User.query.filter_by(email='user@email.com').first()
+
+    db.session.add(Match(3, "irblosset", daniel_uid))
+    db.session.add(Match(5, "skäggetorp", eric_uid))
+    db.session.add(Match(2, "C-huset", user_uid))
 
     db.session.commit()
     return "HTTP 200", 200
