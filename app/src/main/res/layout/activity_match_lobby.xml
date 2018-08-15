@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingEnd="16dp"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    tools:layout_editor_absoluteY="81dp">
+
+    <ImageView
+        android:id="@+id/imageViewGame"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@mipmap/ic_launcher_round"
+    />
+
+    <TextView
+        android:id="@+id/titleViewGame"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="24dp"
+        android:textColor="#000000"
+        android:text="Title"
+        android:textSize="10pt"
+        android:maxWidth="180dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        app:layout_constraintStart_toEndOf="@id/imageViewGame"
+        app:layout_constraintTop_toTopOf="@+id/imageViewGame"/>
+
+    <TextView
+        android:id="@+id/descViewGame"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="5dp"
+        android:text="Description"
+        android:maxWidth="180dp"
+        android:textSize="6pt"
+        android:ellipsize="end"
+        android:maxLines="3"
+        app:layout_constraintStart_toEndOf="@id/imageViewGame"
+        app:layout_constraintTop_toBottomOf="@id/titleViewGame"/>
+
+    <View
+        android:id="@+id/dividerViewGame"
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintTop_toBottomOf="@id/imageViewGame" />
+
+    <include
+        layout="@layout/fraction_layout"
+        android:id="@+id/fractionViewGame"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/dividerViewGame" />
+
+    <Button
+        android:id="@+id/joinButtonViewGame"
+        android:text="Join"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintBottom_toTopOf="@+id/dividerViewGame"
+        app:layout_constraintEnd_toStartOf="@id/fractionViewGame"
+        app:layout_constraintStart_toEndOf="@id/imageViewGame" />
+
+    <include
+        layout="@layout/item_comment"
+        android:id="@+id/lobbyComments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dividerViewGame"
+        />
+
+
+</android.support.constraint.ConstraintLayout>
