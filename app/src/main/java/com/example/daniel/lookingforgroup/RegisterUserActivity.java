@@ -40,7 +40,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class RegisterUserActivity extends AppCompatActivity {
+public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
     private File destination = null;
     private String imgPath = null;
@@ -65,10 +65,39 @@ public class RegisterUserActivity extends AppCompatActivity {
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                submitData();
+                SubmitData();
             }
         });
     }
+
+    private void SubmitData() {
+        PostData postData = new PostData();
+        postData.delegate = this;
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        postData.setSP(sp);
+        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user";
+        String jsonData = getFormattedDataString();
+
+        try {
+            //execute the async task
+            postData.execute(url, jsonData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void processFinish(Integer response){
+        System.out.println(response);
+        //TODO: Handle different responses
+        if(response.equals(200)) {
+            Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show();
+        }
+        else if(response.equals(403)) {
+            Toast.makeText(this, "This email is already registered", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     public void addListenerOnButton() {
         profileAvatar = findViewById(R.id.imageViewProfileAvatar);
@@ -242,6 +271,8 @@ public class RegisterUserActivity extends AppCompatActivity {
          return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\",\"profileAvatar\":\"" + contentProfileAvatar + "\"}";
     }
 
+    //TODO: Remove the following function when class HTTPRequest is gone.
+    /*
     private void submitData () {
         HTTPRequest request = HTTPRequest.getInstance();
         String jsonData = getFormattedDataString();
@@ -251,6 +282,7 @@ public class RegisterUserActivity extends AppCompatActivity {
         request.setSP(sp);
         request.postData();
     }
+    */
 
     private boolean isEmailValid(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();

@@ -10,7 +10,7 @@ import okhttp3.Response;
 
 public class HTTPRequest extends AppCompatActivity {
     SharedPreferences sharedpreferences;
-    public static final  String token = "";
+    public static final String token = "";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkSingleton client = OkSingleton.getInstance();
 
@@ -74,54 +74,13 @@ public class HTTPRequest extends AppCompatActivity {
         protected void onPostExecute(String result) {
             System.out.println("Token value: " + result);
             SharedPreferences.Editor editor = sharedpreferences.edit();
-            editor.putString(token, result);
+            editor.putString("token", result);
             editor.apply();
 
             /* HOW TO ACCESS TOKEN (outside this class):
                 SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
                 String token = sp.getString("token","");
              */
-        }
-    }
-
-    public void postData() {
-        if (this.json != "") {
-            try {
-                new HTTPRequest.SubmitPostData().execute(this.url, this.json);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private class SubmitPostData extends AsyncTask<String, Void, Integer> {
-        @Override
-        protected Integer doInBackground(String... params) {
-            int result = 0;
-            String token = "";
-            if(sharedpreferences.contains("token")) {
-                token = sharedpreferences.getString("token","");
-            }
-            System.out.println("Imma send this token: " + token);
-            RequestBody body = RequestBody.create(JSON, params[1]);
-            //  System.out.println(body);
-            Request request = new Request.Builder()
-                    .url(params[0])
-                    .post(body)
-                    .addHeader("Authorization", token)
-                    .build();
-            // System.out.println(request);
-            try (Response response = client.newCall(request).execute()) {
-                result = response.code();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return result;
-        }
-
-        protected void onPostExecute(Integer result) {
-            System.out.println("Response: " + result);
-            //TODO: Handle this response
         }
     }
 }
