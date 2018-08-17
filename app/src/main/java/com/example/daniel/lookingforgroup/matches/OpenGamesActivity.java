@@ -5,10 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import com.example.daniel.lookingforgroup.R;
 
 import java.util.ArrayList;
+import java.util.zip.Inflater;
 
 public class OpenGamesActivity extends AppCompatActivity {
 
@@ -17,18 +19,19 @@ public class OpenGamesActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_open_games);
 
-        // TODO: get matches data information via request and feed into the matchesAdapter
+        RecyclerView rvMatches = (RecyclerView) findViewById(R.id.matches_view);
 
-        RecyclerView rvMatches = (RecyclerView) findViewById(R.id.rvMatches);
-
-        matches = Match.createMatchList(20);
-
-        MatchesAdapter adapter = new MatchesAdapter(matches);
-
-        rvMatches.setAdapter(adapter);
+        rvMatches.setHasFixedSize(true);
 
         rvMatches.setLayoutManager(new LinearLayoutManager(this));
+
+        matches = Match.createMatchList(20);
+        MatchesAdapter adapter = new MatchesAdapter(matches);
+        // TODO: get matches data information via request and feed into the matchesAdapter
+
+        rvMatches.setAdapter(adapter);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

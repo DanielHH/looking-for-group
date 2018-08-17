@@ -38,15 +38,10 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
     }
 
     private List<Match> matches;
-    private JSONObject matchData;
 
     // Constructor to be fed all data to be shown
     public MatchesAdapter(List<Match> matches) {
         this.matches = matches;
-    }
-
-    public MatchesAdapter(JSONObject matches){
-        this.matchData = matches;
     }
 
     @Override
@@ -56,8 +51,7 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
 
         View matchView = inflater.inflate(R.layout.item_match, parent, false);
 
-        ViewHolder viewHolder = new ViewHolder(matchView);
-        return viewHolder;
+        return new ViewHolder(matchView);
     }
 
     @Override
@@ -73,8 +67,8 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
         TextView currentPlayers = viewHolder.currentPlayers;
         TextView maxPlayers = viewHolder.maxPlayers;
 
-        currentPlayers.setText(match.getCurrentPlayers());
-        maxPlayers.setText(match.getMaxPlayers());
+        currentPlayers.setText(Integer.toString(match.getCurrentPlayers()));
+        maxPlayers.setText(Integer.toString(match.getMaxPlayers()));
     }
 
     @Override

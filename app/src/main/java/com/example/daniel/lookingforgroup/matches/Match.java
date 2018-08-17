@@ -18,6 +18,10 @@ public class Match {
 
     private Match(String gameName) {
         this.gameName = gameName;
+        this.location = "nowhere";
+        this.maxPlayers = 3;
+        this.curPlayers = 1;
+        this.createdDate = new Date();
     }
 
     private Match(JSONObject matchData) {

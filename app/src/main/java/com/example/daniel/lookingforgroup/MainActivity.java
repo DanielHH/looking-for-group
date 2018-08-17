@@ -10,6 +10,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.example.daniel.lookingforgroup.matches.OpenGamesActivity;
+
 import java.io.IOException;
 import java.net.URL;
 
@@ -64,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         startActivity(intent);
 */
-        Intent intent = new Intent(this, RegisterUserActivity.class);
+        Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);
 
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
