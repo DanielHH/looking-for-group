@@ -19,6 +19,9 @@ class DataTest(unittest.TestCase):
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
                          data=json.dumps('Another message'))
 
+    def test_dummy(self):
+        self.server.post('/dummy')
+
     def post_matches(self, token):
         self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
                          data=json.dumps({'location': 'here', 'max_players': 3, 'game_name': 'Robot Wars'}))
