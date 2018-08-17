@@ -3,6 +3,7 @@ package com.example.daniel.lookingforgroup;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -208,8 +209,6 @@ public class RegisterUserActivity extends AppCompatActivity {
             contentProfileAvatar = "";
         }
 
-        // Comment out the following code to use test-register info.
-
         TextView tName = findViewById(R.id.nameRegister);
         String name = tName.getText().toString();
         if (name.equals("")) {
@@ -235,63 +234,22 @@ public class RegisterUserActivity extends AppCompatActivity {
             return "";
         }
 
-        //TODO: Function for showing if password == repeated password, else toast an error message.
         if (!password.equals(passwordRepeat)) {
             Toast.makeText(this, "Passwords do not match!", Toast.LENGTH_SHORT).show();
             return "";
         }
 
-        // Comment outend.
-
-
-        // Example registry for tests
-/*
-        String email = "daniel@gos.com";
-        String name = "pruttis";
-        String password = "danielpw";
-        */
-        // TODO: format correctly for sending with used library
          return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\",\"profileAvatar\":\"" + contentProfileAvatar + "\"}";
-
-        //return "{'email':'" + email + "','name':'" + name + "','password':'" + password + "','profileAvatar':'" + contentProfileAvatar + "'}";
-
     }
-
 
     private void submitData () {
-        String json = getFormattedDataString();
-        if (json != "") {
-            try {
-                new RegisterUserActivity.SubmitProfileData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user", json);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    OkHttpClient client = new OkHttpClient();
-    private class SubmitProfileData extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            String result = "";
-            RequestBody body = RequestBody.create(JSON, params[1]);
-          //  System.out.println(body);
-            Request request = new Request.Builder()
-                    .url(params[0])
-                    .post(body)
-                    .build();
-            // System.out.println(request);
-            try (Response response = client.newCall(request).execute()) {
-                result = response.body().string();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return result;
-        }
-
-        protected void onPostExecute(String result) {
-            System.out.println("!!!!!!!!!!!!!!!! " + result + "!!!!!!!!!!!!!!");
-        }
+        HTTPRequest request = HTTPRequest.getInstance();
+        String jsonData = getFormattedDataString();
+        request.setJson(jsonData);
+        request.setUrl("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user");
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        request.setSP(sp);
+        request.postData();
     }
 
     private boolean isEmailValid(String email) {
@@ -301,6 +259,4 @@ public class RegisterUserActivity extends AppCompatActivity {
     private boolean isPasswordValid(String password) {
         return password.length() > 6;
     }
-
-
 }
