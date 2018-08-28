@@ -28,6 +28,7 @@
     <string name="email_login">Email</string>
     <string name="password_login">Password</string>
     <string name="button_login">Login</string>
+    <string name="register">Register new user</string>
 
     <string name="large_text">
         "Material is the metaphor.\n\n"

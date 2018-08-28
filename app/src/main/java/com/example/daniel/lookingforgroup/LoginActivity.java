@@ -1,5 +1,6 @@
 package com.example.daniel.lookingforgroup;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +30,12 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         });
     }
 
+    public void goToRegister(View view) {
+
+        Intent intent = new Intent(this, RegisterUserActivity.class);
+        startActivity(intent);
+    }
+
     private void newSubmitData() {
         PostLogin postLogin = new PostLogin();
         postLogin.delegate = this;
@@ -50,20 +57,14 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         System.out.println(response[0]);
         //TODO: Handle different responses
 
-        if(response[1].contains("email")) {
-            Toast.makeText(this, response[1], Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Toast.makeText(this, "Logged in successfully!", Toast.LENGTH_SHORT).show();
-        }
-        /*
         if(response[0].equals("200")) {
             Toast.makeText(this, "Logged in successfully!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
         }
-        else if(response[0].equals("403")) {
-            Toast.makeText(this, "", Toast.LENGTH_SHORT).show();
+        else if(response[0].equals("400")) {
+            Toast.makeText(this, response[1], Toast.LENGTH_SHORT).show();
         }
-        */
     }
 
     private String getFormattedDataString() {
