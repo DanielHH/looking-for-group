@@ -46,8 +46,9 @@ class Token(db.Model):
     token = db.Column(db.String(200), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, token):
+    def __init__(self, token, user_id):
         self.token = token
+        self.user_id = user_id
 
     def __repr__(self):
         return self.token
@@ -79,10 +80,11 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=SECONDS_IN_ONE_WEEK):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
-        token = Token(s.dumps(self.id).decode('utf-8'))
-        token.user_id = self.id
+        token = Token(s.dumps(self.id).decode('utf-8'), self.id)
         self.tokens.append(token)
+        db.session.add(token)
         db.session.commit()
+
         return str(token)
 
     def set_picture(self, picture):
@@ -245,8 +247,10 @@ def login_user():
         email = data['email']
         password = data['password']
         user = User.query.filter_by(email=email).first()
+
         if not user:
-            return "email or password incorrect"
+            return "email or password incorrect", 400
+
         elif user.check_password(password):
             token = user.generate_auth_token()
 
@@ -254,7 +258,8 @@ def login_user():
                 print("user: " + user.email)
                 print("token: " + token)
 
-            return json.dumps({'token': token})
+            return json.dumps({'token': token}), 200
+
         else:
             return "email or password incorrect", 400
 
@@ -331,9 +336,11 @@ def logout_user():
     elif request.method == "POST":
         headers = request.headers
         token_value = headers["Authorization"]
-        token = Token.query.filter_by(token=token_value).first()
+        token = Token.query.get(token_value)
+
         if token_value == token.token:
             # user_logout_message = "{0} is now logged out on this device".format(str(g.user))
+            g.user.tokens.remove(token)
             db.session.delete(token)
             db.session.commit()
             return 'HTTP 200', 200

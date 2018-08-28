@@ -2,7 +2,7 @@ import unittest
 import app
 import ast
 import json
-
+import time
 
 class DataTest(unittest.TestCase):
     def setUp(self):
@@ -44,11 +44,10 @@ class DataTest(unittest.TestCase):
                          data=json.dumps({'email': 'somon123@student.liu.se', 'name': 'somon123', 'password': 'password'}))
 
     def login_user(self, email):
-        self.server.post('/user/login', headers={'Content-Type': 'application/json'},
-                         data=json.dumps({'email': '{0}'.format(email), 'password': 'password'}))
-        user = app.User.query.filter_by(email='{0}'.format(email)).first()
-        token = app.Token.query.filter_by(user_id=user.id).first()
-        return token.token
+        rv = self.convert_to_literal(self.server.post('/user/login', headers={'Content-Type': 'application/json'},
+                                                      data=json.dumps({'email': '{0}'.format(email),
+                                                                       'password': 'password'})))
+        return rv['token']
 
     def test_create_users(self):
         self.create_users()
@@ -67,10 +66,19 @@ class DataTest(unittest.TestCase):
 
     def test_logout_user(self):
         self.create_users()
-        token = self.login_user('user@email.com')
-        self.server.post('/user/logout', headers={"Authorization": token})
+        token1 = self.login_user('user@email.com')
+        time.sleep(1)
+        token2 = self.login_user('user@email.com')
+        time.sleep(1)
+        token3 = self.login_user('user@email.com')
+        self.server.post('/user/logout', headers={"Authorization": token3})
+
         tokens = app.Token.query.all()
-        self.assertEqual(tokens, [])
+        token_list = []
+        for tok in tokens:
+            token_list.append(str(tok))
+
+        self.assertEqual(token_list, [token1, token2])
 
     def test_post_messages(self):
         self.create_users()
