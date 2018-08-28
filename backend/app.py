@@ -256,7 +256,7 @@ def login_user():
 
             return json.dumps({'token': token})
         else:
-            return "email or password incorrect"
+            return "email or password incorrect", 400
 
     else:
         return abort(405)
