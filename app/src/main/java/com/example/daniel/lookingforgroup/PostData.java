@@ -22,10 +22,11 @@ public class PostData extends AsyncTask<String, Void, Integer> {
     protected Integer doInBackground(String... params) {
         int result = 0;
         String token = "";
-        if (sp.contains("token")) {
-            token = sp.getString("token", "");
+        token = sp.getString("token", "");
+        if (sp.contains("token") && (token.length())>30) {
+            System.out.println("Imma send this token: " + token.substring(11, 124));
         }
-        System.out.println("Imma send this token: " + token);
+
         RequestBody body = RequestBody.create(JSON, params[1]);
         //  System.out.println(body);
         Request request = new Request.Builder()

@@ -9,12 +9,22 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
-public class MainActivity extends AppCompatActivity {
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity implements AsyncResponse {
     public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        if(sp.contains("token")) {
+            setContentView(R.layout.activity_main);
+        }
+        else{
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
@@ -30,9 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void goToOpenGames(View view) {
 
-       // Intent intent = new Intent(this, OpenGamesActivity.class);
-       // startActivity(intent);
-        Intent intent = new Intent(this, RegisterUserActivity.class);
+        Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);
 
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
@@ -40,8 +48,39 @@ public class MainActivity extends AppCompatActivity {
 
     public void logout(View view) {
 
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
+        PostData postData = new PostData();
+        postData.delegate = this;
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        postData.setSP(sp);
+        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user/logout";
+
+        try {
+            //execute the async task
+            postData.execute(url, "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void processFinish(Integer response){
+        System.out.println(response);
+        //TODO: Handle different responses
+        if(response.equals(200)) {
+            SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+            sp.edit().remove("token").apply();
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
+        else if(response.equals(401)) {
+            Toast.makeText(this, "Wrong token. Can't logout! lol", Toast.LENGTH_SHORT).show();
+            SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+            sp.edit().remove("token").apply();
+            String token = sp.getString("token", "");
+            System.out.println("Hopefully nothing will be printed after this colon: " + token);
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override
