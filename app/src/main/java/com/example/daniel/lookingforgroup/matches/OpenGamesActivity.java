@@ -5,12 +5,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 
 import com.example.daniel.lookingforgroup.R;
 
 import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 public class OpenGamesActivity extends AppCompatActivity {
 

@@ -8,6 +8,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     tools:showIn="@layout/item_match">
 
+    <View
+        android:id="@+id/divider"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
     <TextView
         android:id="@+id/fracNum"
         android:layout_width="wrap_content"
@@ -27,13 +35,4 @@
         android:text="0"
         app:layout_constraintLeft_toRightOf="@+id/divider"
         app:layout_constraintBottom_toBottomOf="parent" />
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="1dp"
-        android:layout_height="match_parent"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
 </android.support.constraint.ConstraintLayout>
