@@ -1,0 +1,1 @@
+Handle case where user to be registered already exists in db (403 error)

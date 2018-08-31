@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".OpenGamesActivity">
+    tools:context=".matches.OpenGamesActivity"
+    >
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -33,15 +34,10 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_open_games" />
-    <!--
-       <android.support.design.widget.FloatingActionButton
-           android:id="@+id/fab"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_margin="@dimen/fab_margin"
-           app:layout_anchor="@id/app_bar"
-           app:layout_anchorGravity="bottom|end"
-           app:srcCompat="@android:drawable/ic_dialog_email" />
-    -->
-   </android.support.design.widget.CoordinatorLayout>
+    <include layout="@layout/view_matches"
+        android:id="@+id/matches_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+</android.support.design.widget.CoordinatorLayout>

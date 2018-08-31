@@ -9,3 +9,7 @@
 /captures
 .externalNativeBuild
 /backend/__pycache__/
+venv
+app/.idea
+app/gradle
+app/local

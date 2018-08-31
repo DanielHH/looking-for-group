@@ -11,7 +11,10 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.daniel.lookingforgroup.matches.OpenGamesActivity;
+
 public class MainActivity extends AppCompatActivity implements AsyncResponse {
+
     public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     }
 
     public void goToOpenGames(View view) {
+
 
         Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);

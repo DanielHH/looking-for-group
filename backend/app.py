@@ -19,6 +19,8 @@ db = SQLAlchemy(app)
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
 
+DEBUG = True
+
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
 
@@ -30,9 +32,9 @@ comments_table = db.Table('comments', db.metadata,
                           db.Column('message_id', db.String, db.ForeignKey('message.id')),
                           db.Column('match_id', db.Integer, db.ForeignKey('match.id')))
 
-matches_table = db.Table('matched_players', db.metadata,
-                         db.Column('match_id', db.Integer, db.ForeignKey('match.id')),
-                         db.Column('user_id', db.Integer, db.ForeignKey('user.id')))
+matches_table = db.Table('matches_table', db.metadata,
+                         db.Column('played', db.Integer, db.ForeignKey('match.id')),
+                         db.Column('played_by', db.Integer, db.ForeignKey('user.id')))
 
 follow_table = db.Table('follow', db.metadata,
                            db.Column('follower_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
@@ -44,8 +46,9 @@ class Token(db.Model):
     token = db.Column(db.String(200), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, token):
+    def __init__(self, token, user_id):
         self.token = token
+        self.user_id = user_id
 
     def __repr__(self):
         return self.token
@@ -62,10 +65,10 @@ class User(db.Model):
     tokens = db.relationship('Token')
     read = db.relationship('Message',
                            secondary=read_by_table,
-                           backref=db.backref('users'))
+                           back_populates='read_by')
     played = db.relationship('Match',
                              secondary=matches_table,
-                             backref=db.backref('users'))
+                             back_populates='played_by')
 
     def __init__(self, email, name, password):
         self.email = email
@@ -77,10 +80,11 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=SECONDS_IN_ONE_WEEK):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
-        token = Token(s.dumps(self.id).decode('utf-8'))
-        token.user_id = self.id
+        token = Token(s.dumps(self.id).decode('utf-8'), self.id)
         self.tokens.append(token)
+        db.session.add(token)
         db.session.commit()
+
         return str(token)
 
     def set_picture(self, picture):
@@ -102,10 +106,10 @@ class Message(db.Model):
 
     posted_on = db.relationship('Match',
                                 secondary=comments_table,
-                                backref=db.backref('messages'))
+                                back_populates='comments')
     read_by = db.relationship('User',
                               secondary=read_by_table,
-                              backref=db.backref('messages'))
+                              back_populates='read')
 
     def __init__(self, message, author_id, message_id, match_id=None):
         self.message = message
@@ -128,24 +132,25 @@ class Match(db.Model):
     cur_players = db.Column(db.Integer, nullable=False)
     created_date = db.Column(db.DateTime, nullable=False)
     game_on_date = db.Column(db.DateTime, nullable=True)
-    started_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # started_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     name_location = db.Column(db.Text, nullable=True)
 
     comments = db.relationship('Message',
                                secondary=comments_table,
-                               backref=db.backref('matches'))
+                               back_populates='posted_on')
+
     played_by = db.relationship('User',
                                 secondary=matches_table,
-                                backref=db.backref('matches'))
+                                back_populates='played')
 
-    # TODO: add actual games to the db and connect to matches
-
-    def __init__(self, max_players, creator, location, uid):
+    def __init__(self, max_players, location, uid):
         self.max_players = max_players
-        self.started_by = creator
+        # self.started_by = uid
         self.cur_players = 1
+
         self.created_date = datetime.datetime.now()
+
         self.played_by.append(uid)
 
         if type(location) is str:
@@ -202,6 +207,10 @@ def index():
 def create_user():
     if request.method == "POST":
         data = request.get_json()
+
+        if DEBUG:
+            print("json: " + json.dumps(data))
+
         email = data['email']
 
         if User.query.filter_by(email=email).first():
@@ -214,7 +223,45 @@ def create_user():
         user = User(email, name, password)
         db.session.add(user)
         db.session.commit()
+
+        if DEBUG:
+            print("uid: " + str(user.id))
+            print("email: " + user.email)
+            print("name: " + user.name)
+            print("password: " + user.password)
+
         return 'HTTP 200', 200
+
+    else:
+        return abort(405)
+
+
+@app.route("/user/login", methods=["POST"])
+def login_user():
+    if request.method == "POST":
+        data = request.get_json()
+
+        if DEBUG:
+            print("json: " + json.dumps(data))
+
+        email = data['email']
+        password = data['password']
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            return "email or password incorrect", 400
+
+        elif user.check_password(password):
+            token = user.generate_auth_token()
+
+            if DEBUG:
+                print("user: " + user.email)
+                print("token: " + token)
+
+            return json.dumps({'token': token}), 200
+
+        else:
+            return "email or password incorrect", 400
 
     else:
         return abort(405)
@@ -280,24 +327,6 @@ def follow_user(follow_id):
         return abort(405)
 
 
-@app.route("/user/login", methods=["POST"])
-def login_user():
-    if request.method == "POST":
-        email = request.get_json()['email']
-        password = request.get_json()['password']
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            return "email or password incorrect"
-        elif user.check_password(password):
-            token = user.generate_auth_token()
-            return json.dumps({'token': token})
-        else:
-            return "email or password incorrect"
-
-    else:
-        return abort(405)
-
-
 @app.route("/user/logout", methods=["POST"])
 @verify_login
 def logout_user():
@@ -307,9 +336,11 @@ def logout_user():
     elif request.method == "POST":
         headers = request.headers
         token_value = headers["Authorization"]
-        token = Token.query.filter_by(token=token_value).first()
+        token = Token.query.get(token_value)
+
         if token_value == token.token:
             # user_logout_message = "{0} is now logged out on this device".format(str(g.user))
+            g.user.tokens.remove(token)
             db.session.delete(token)
             db.session.commit()
             return 'HTTP 200', 200
@@ -506,6 +537,13 @@ def get_matches():
                                'cur_players': cur_players, 'max_players': max_players,
                                'match_id': match_id})
 
+            if DEBUG:
+                print("location: " + location)
+                print("created_date: " + str(created_date))
+                print("cur_players: " + str(cur_players))
+                print("max_players: " + str(max_players))
+                print("match_id: " + str(match_id))
+
         return json.dumps(match_list)
 
     else:
@@ -527,7 +565,9 @@ def post_match():
         # TODO: Make players connect a game_id from boardgamegeek to the desired match
         game_name = data['game_name']
 
-        db.session.add(Match(max_players, g.user.email, location, g.user))
+        match = Match(max_players, location, g.user)
+
+        db.session.add(match)
         db.session.commit()
 
         return "HTTP 200", 200
@@ -552,12 +592,12 @@ def get_match(match_id):
                       'cur_players': match.cur_players,
                       'max_players': match.max_players,
                       'match_id': match.id,
-                      'started_by': match.started_by,
+                      # 'started_by': match.started_by,
                       'game_on_date': match.game_on_date}
 
         #  Get all players currently in the lobby for the game
         player_list = []
-        for user in User.query.filter(User.matches.any(id=match_id)).all():
+        for user in User.query.filter(User.played.any(id=match_id)).all():
             player_data = {'id': user.id,
                            'name': user.name,
                            'email': user.email}
@@ -571,7 +611,7 @@ def get_match(match_id):
 
         #  Get all comments posted on the current game
         comment_list = []
-        for comment in Message.query.filter(Message.matches.any(id=match_id)).all():
+        for comment in Message.query.filter(Message.posted_on.any(id=match_id)).all():
             comment_data = {'id': comment.id,
                             'author': comment.author_id,
                             'message': comment.message,
@@ -644,7 +684,12 @@ def post_dummy_data():
     db.session.commit()
 
     daniel_uid = User.query.filter_by(email='danhe178@student.liu.se').first()
-    db.session.add(Match(3, "daniel", "irblosset", daniel_uid))
+    eric_uid = User.query.filter_by(email='eriny656@student.liu.se').first()
+    user_uid = User.query.filter_by(email='user@email.com').first()
+
+    db.session.add(Match(3, "irblosset", daniel_uid))
+    db.session.add(Match(5, "skäggetorp", eric_uid))
+    db.session.add(Match(2, "C-huset", user_uid))
 
     db.session.commit()
     return "HTTP 200", 200
@@ -681,4 +726,3 @@ if __name__ == '__main__':
 
     db.drop_all()
     db.create_all()
-
