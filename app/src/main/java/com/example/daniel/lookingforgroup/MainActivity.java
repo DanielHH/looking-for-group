@@ -20,7 +20,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        if(sp.contains("token")) {
+        String tokenDic = sp.getString("token", "");
+        if(sp.contains("token") && (tokenDic.length())>30) {
             setContentView(R.layout.activity_main);
         }
         else{
@@ -42,16 +43,13 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     }
 
     public void goToOpenGames(View view) {
-
-
         Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);
-
+        
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
     }
 
     public void logout(View view) {
-
         PostData postData = new PostData();
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
@@ -67,16 +65,16 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     }
 
     @Override
-    public void processFinish(Integer response){
+    public void processFinish(String response){
         System.out.println(response);
         //TODO: Handle different responses
-        if(response.equals(200)) {
+        if(response.equals("200")) {
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-        else if(response.equals(401)) {
+        else if(response.equals("401")) {
             Toast.makeText(this, "Wrong token. Can't logout! lol", Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
