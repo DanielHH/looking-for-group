@@ -7,17 +7,29 @@
     <string name="button_create_game">Create new game</string>
     <string name="title_activity_open_games">OpenGames</string>
     <string name="title_activity_register_user">RegisterUser</string>
+    <string name="title_activity_login">Login</string>
+    <string name="logout">Log out</string>
+
     /*Create new game page*/
     <string name="add_description">Add a description...</string>
     <string name="button_save">Save</string>
 
     /*Register new user*/
+    <string name="headline_register_user">Register User</string>
     <string name="name_register">Name</string>
     <string name="email_register">Email</string>
     <string name="password_register">Password</string>
     <string name="password_repeat_register">Repeat Password</string>
     <string name="button_register">Register</string>
-    <string name="headline_register_user">Register User</string>
+
+
+    /*Login page*/
+    <string name="headline_login">Sign in</string>
+    <string name="email_login">Email</string>
+    <string name="password_login">Password</string>
+    <string name="button_login">Login</string>
+    <string name="register">Register new user</string>
+
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
