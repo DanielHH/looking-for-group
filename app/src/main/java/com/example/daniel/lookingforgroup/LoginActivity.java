@@ -81,20 +81,6 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         return "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
     }
 
-
-// TODO: REMOVE WHEN HTTPRequest IS REMOVED.
-    /*
-    private void submitData() {
-        HTTPRequest request = HTTPRequest.getInstance();
-        String jsonData = getFormattedDataString();
-        request.setJson(jsonData);
-        request.setUrl("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user/login");
-        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        request.setSP(sp);
-        request.postLogin();
-    }
-    */
-
     // TODO: Outsource to a utility function class or something.
     private boolean isEmailValid(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
