@@ -8,7 +8,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class PostData extends AsyncTask<String, Void, Integer> {
+public class PostData extends AsyncTask<String, Void, String> {
     SharedPreferences sp;
     public void setSP(SharedPreferences sp) {
         this.sp = sp;
@@ -19,8 +19,9 @@ public class PostData extends AsyncTask<String, Void, Integer> {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override
-    protected Integer doInBackground(String... params) {
+    protected String doInBackground(String... params) {
         int result = 0;
+        String resultString = "";
         String token = "";
         String tokenDic = sp.getString("token", "");
         if (sp.contains("token") && (tokenDic.length())>30) {
@@ -37,13 +38,14 @@ public class PostData extends AsyncTask<String, Void, Integer> {
         // System.out.println(request);
         try (Response response = client.newCall(request).execute()) {
             result = response.code();
+            resultString = Integer.toString(result);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
+        return resultString;
     }
 
-    protected void onPostExecute(Integer result) {
+    protected void onPostExecute(String result) {
         System.out.println("Response: " + result);
         //TODO: Handle this response
         delegate.processFinish(result);

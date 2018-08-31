@@ -87,13 +87,13 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     }
 
     @Override
-    public void processFinish(Integer response){
+    public void processFinish(String response){
         System.out.println(response);
         //TODO: Handle different responses
-        if(response.equals(200)) {
+        if(response.equals("200")) {
             Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show();
         }
-        else if(response.equals(403)) {
+        else if(response.equals("403")) {
             Toast.makeText(this, "This email is already registered", Toast.LENGTH_SHORT).show();
         }
     }
@@ -270,19 +270,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
 
          return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\",\"profileAvatar\":\"" + contentProfileAvatar + "\"}";
     }
-
-    //TODO: Remove the following function when class HTTPRequest is gone.
-    /*
-    private void submitData () {
-        HTTPRequest request = HTTPRequest.getInstance();
-        String jsonData = getFormattedDataString();
-        request.setJson(jsonData);
-        request.setUrl("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user");
-        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        request.setSP(sp);
-        request.postData();
-    }
-    */
 
     private boolean isEmailValid(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
