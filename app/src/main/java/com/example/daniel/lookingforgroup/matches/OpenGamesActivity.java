@@ -6,6 +6,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 
+import com.example.daniel.lookingforgroup.HTTPRequest;
 import com.example.daniel.lookingforgroup.R;
 
 import java.util.ArrayList;

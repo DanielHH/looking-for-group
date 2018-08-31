@@ -40,6 +40,12 @@
             android:label="@string/title_activity_open_games"
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
+            android:name=".matches.LobbyActivity"
+            android:label="@string/title_activity_open_games"
+            android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
+        <activity
             android:name=".RegisterUserActivity"
             android:label="@string/title_activity_register_user"
             android:theme="@style/AppTheme.NoActionBar">
