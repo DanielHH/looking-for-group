@@ -253,12 +253,13 @@ def login_user():
 
         elif user.check_password(password):
             token = user.generate_auth_token()
+            user_id = user.id
 
             if DEBUG:
                 print("user: " + user.email)
                 print("token: " + token)
 
-            return json.dumps({'token': token}), 200
+            return json.dumps({'token': token, 'id': user_id}), 200
 
         else:
             return "email or password incorrect", 400

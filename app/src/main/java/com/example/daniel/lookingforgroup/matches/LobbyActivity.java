@@ -12,16 +12,19 @@ import android.widget.TextView;
 import com.example.daniel.lookingforgroup.R;
 
 public class LobbyActivity extends AppCompatActivity {
-
     private Match match;
     Button joinButton;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState, @Nullable PersistableBundle persistentState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_match_lobby);
 
-        match = getIntent().getParcelableExtra("match");
+        Bundle data = getIntent().getExtras();
+        assert data != null;
+        match = (Match) data.getParcelable("match");
+        assert match != null;
+
         int curPlayers = match.getCurrentPlayers();
         int maxPlayers = match.getMaxPlayers();
         String title = match.getName();
@@ -41,12 +44,12 @@ public class LobbyActivity extends AppCompatActivity {
         });
 
         titleView.setText(title);
-        numView.setText(curPlayers);
-        denView.setText(maxPlayers);
+        numView.setText(String.valueOf(curPlayers));
+        denView.setText(String.valueOf(maxPlayers));
 
         if (curPlayers < maxPlayers) {
-            joinButton.setEnabled(false);
-        } else joinButton.setEnabled(true);
+            joinButton.setEnabled(true);
+        } else joinButton.setEnabled(false);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

@@ -41,7 +41,7 @@
             android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".matches.LobbyActivity"
-            android:label="@string/title_activity_open_games"
+            android:label="Lobby"
             android:theme="@style/AppTheme.NoActionBar">
 
         </activity>
