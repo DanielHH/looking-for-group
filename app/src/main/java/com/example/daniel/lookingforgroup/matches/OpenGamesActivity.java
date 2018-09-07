@@ -15,7 +15,7 @@ import org.json.JSONException;
 
 import java.util.ArrayList;
 
-public class OpenGamesActivity extends AppCompatActivity implements AsyncResponse{
+public class OpenGamesActivity extends AppCompatActivity implements AsyncResponse {
 
     ArrayList<Match> matches;
 
