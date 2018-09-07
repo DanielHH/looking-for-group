@@ -269,7 +269,7 @@ def login_user():
 
 @app.route("/user/<user_id>", methods=["GET"])
 def view_profile(user_id):
-    user = User.query.get(user_id).first()
+    user = User.query.get(user_id)
     if not user:
         return abort(400)
 
@@ -290,6 +290,8 @@ def view_profile(user_id):
 
         data['matches_played'] = match_list
 
+        # TODO: Fix follows for users
+        """
         follows_list = []
         for user in User.query.filter(User.follows.any(id=user_id)).all():
             user_data = {'id': user.id,
@@ -300,6 +302,7 @@ def view_profile(user_id):
             follows_list.append(user_data)
 
         data['follows'] = follows_list
+        """
 
         return json.dumps(data)
 
