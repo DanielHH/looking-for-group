@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
@@ -39,13 +38,21 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         EditText editText = (EditText) findViewById(R.id.editText);
         String gameName = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, gameName);
+    }
+
+    public void goToMyProfile(View view) {
+        Intent intent = new Intent(this, EditProfileActivity.class);
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        String id = sp.getString("userId","");
+        intent.putExtra("EXTRA_USER_ID", id);
         startActivity(intent);
     }
 
     public void goToOpenGames(View view) {
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        sp.edit().remove("token").apply();
         Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);
-        
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
     }
 
@@ -78,8 +85,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
             Toast.makeText(this, "Wrong token. Can't logout! lol", Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
-            String token = sp.getString("token", "");
-            System.out.println("Hopefully nothing will be printed after this colon: " + token);
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
