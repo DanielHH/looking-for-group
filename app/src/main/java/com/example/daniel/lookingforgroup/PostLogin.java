@@ -3,6 +3,8 @@ package com.example.daniel.lookingforgroup;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
+import org.json.JSONObject;
+
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;

@@ -19,9 +19,7 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
         // Set member variables for all views to be set as row is rendered
 
         public TextView gameName;
-
         public TextView location;
-
         public TextView currentPlayers;
         public TextView maxPlayers;
 
@@ -29,7 +27,6 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
         public ViewHolder(View itemView) {
             super(itemView);
             View fractionView = (View) itemView.findViewById(R.id.item_fraction);
-
             gameName = (TextView) itemView.findViewById(R.id.game_name);
             location = (TextView) itemView.findViewById(R.id.location);
             currentPlayers = (TextView) fractionView.findViewById(R.id.fracNum);
@@ -38,10 +35,12 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
     }
 
     private List<Match> matches;
+    private OnItemClickListener listener;
 
     // Constructor to be fed all data to be shown
-    public MatchesAdapter(List<Match> matches) {
+    public MatchesAdapter(List<Match> matches, OnItemClickListener listener) {
         this.matches = matches;
+        this.listener = listener;
     }
 
     @Override
@@ -56,7 +55,7 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(MatchesAdapter.ViewHolder viewHolder, int position) {
-        Match match = matches.get(position);
+        final Match match = matches.get(position);
 
         TextView gameName = viewHolder.gameName;
         gameName.setText(match.getName());
@@ -69,10 +68,21 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
 
         currentPlayers.setText(Integer.toString(match.getCurrentPlayers()));
         maxPlayers.setText(Integer.toString(match.getMaxPlayers()));
+
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                listener.onItemClick(match);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
         return matches.size();
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(Match match);
     }
 }
