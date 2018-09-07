@@ -269,7 +269,7 @@ def login_user():
 
 @app.route("/user/<user_id>", methods=["GET"])
 def view_profile(user_id):
-    user = User.query.get(user_id)
+    user = User.query.get(user_id).first()
     if not user:
         return abort(400)
 
