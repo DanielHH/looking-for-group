@@ -283,7 +283,7 @@ def view_profile(user_id):
             match_data = {'id': match.id,
                           'amt_players': match.cur_players,
                           'game_on_date': match.game_on_date,
-                          'started_by': match.started_by,
+                          # 'started_by': match.started_by,
                           'location': match.name_location}
 
             match_list.append(match_data)
