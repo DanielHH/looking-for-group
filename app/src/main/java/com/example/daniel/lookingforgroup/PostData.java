@@ -20,8 +20,7 @@ public class PostData extends AsyncTask<String, Void, String> {
 
     @Override
     protected String doInBackground(String... params) {
-        int result = 0;
-        String resultString = "";
+        String result = "";
         String token = "";
         if (sp.contains("token")) {
             token = sp.getString("token", "");
@@ -36,12 +35,11 @@ public class PostData extends AsyncTask<String, Void, String> {
                 .build();
         // System.out.println(request);
         try (Response response = client.newCall(request).execute()) {
-            result = response.code();
-            resultString = Integer.toString(result);
+            result = response.body().string();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return resultString;
+        return result;
     }
 
     protected void onPostExecute(String result) {
