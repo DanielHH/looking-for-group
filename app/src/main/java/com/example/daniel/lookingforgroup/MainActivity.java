@@ -73,15 +73,15 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     @Override
     public void processFinish(String response){
         //TODO: Handle different responses
-        if(response.equals("200")) {
+        if(response.equals("HTTP 200")) {
             Toast.makeText(this, "Logged out!", Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-        else if(response.equals("401")) {
-            Toast.makeText(this, "Wrong token. Can't logout! lol", Toast.LENGTH_SHORT).show();
+        else {
+            Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
             Intent intent = new Intent(this, LoginActivity.class);

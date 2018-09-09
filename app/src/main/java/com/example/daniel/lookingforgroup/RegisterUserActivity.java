@@ -91,10 +91,10 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     public void processFinish(String response){
         System.out.println(response);
         //TODO: Handle different responses
-        if(response.equals("200")) {
+        if(response.equals("HTTP 200")) {
             Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show();
         }
-        else if(response.equals("403")) {
+        else {
             Toast.makeText(this, "This email is already registered", Toast.LENGTH_SHORT).show();
         }
     }
