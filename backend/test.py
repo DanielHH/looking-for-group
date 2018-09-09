@@ -183,6 +183,12 @@ class DataTest(unittest.TestCase):
         self.assertEqual(rv['match_id'], 1, 'Failed in post matches')
         self.assertEqual(rv['max_players'], 3, 'Failed in post matches')
 
+    def test_view_profile(self):
+        self.create_users()
+        rv = json.loads(self.server.get('http://127.0.0.1:5000/user/1').data)
+
+        self.assertEqual(rv['email'], 'user@email.com')
+
     def test_long_message_post(self):
         self.create_users()
         token = self.login_user('user@email.com')
