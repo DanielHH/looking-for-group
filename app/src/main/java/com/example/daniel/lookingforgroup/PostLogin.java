@@ -3,6 +3,7 @@ package com.example.daniel.lookingforgroup;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import okhttp3.MediaType;
@@ -38,10 +39,20 @@ public class PostLogin extends AsyncTask<String, Void, String[]> {
     }
 
     protected void onPostExecute(String[] result) {
-        System.out.println("Token value: " + result[1]);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("token", result[1]);
-        editor.apply();
+        try {
+            JSONObject data = new JSONObject(result[1]);
+            String token = data.getString("token");
+            String id = data.getString("id");
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("token", token);
+            editor.apply();
+            editor.putString("userId", id);
+            editor.apply();
+            String tokenDic = sp.getString("token", "");
+            System.out.println("Token: " + tokenDic);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         delegate.processFinish(result);
 
             /* HOW TO ACCESS TOKEN (outside this class):

@@ -40,6 +40,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+//TODO; Remake ResisterUserActivity to be a fragment of LoginActivity
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
     private File destination = null;
