@@ -20,8 +20,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        String tokenDic = sp.getString("token", "");
-        if(sp.contains("token") && (tokenDic.length())>30) {
+        String token = sp.getString("token", "");
+        if(sp.contains("token") && (token.length())>30) {
             setContentView(R.layout.activity_main);
         }
         else{
@@ -50,8 +50,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     }
 
     public void goToOpenGames(View view) {
-        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        sp.edit().remove("token").apply();
         Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
