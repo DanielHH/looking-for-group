@@ -164,7 +164,7 @@ class Match(db.Model):
 
     def __repr__(self):
         # TODO: change this to game and date
-        return self.id
+        return str(self.id)
 
 
 def verify_login(func):
@@ -591,44 +591,47 @@ def get_match(match_id):
         return abort(400)
 
     if request.method == "GET":
-        match_data = {'location': match.name_location,
-                      'created_date': match.created_date,
-                      'cur_players': match.cur_players,
-                      'max_players': match.max_players,
-                      'match_id': match.id,
-                      # 'started_by': match.started_by,
-                      'game_on_date': match.game_on_date}
-
-        #  Get all players currently in the lobby for the game
-        player_list = []
-        for user in User.query.filter(User.played.any(id=match_id)).all():
-            player_data = {'id': user.id,
-                           'name': user.name,
-                           'email': user.email}
-
-            if user.picture:
-                player_data['picture'] = user.picture
-
-            player_list.append(player_data)
-
-        match_data['played_by'] = player_list
-
-        #  Get all comments posted on the current game
-        comment_list = []
-        for comment in Message.query.filter(Message.posted_on.any(id=match_id)).all():
-            comment_data = {'id': comment.id,
-                            'author': comment.author_id,
-                            'message': comment.message,
-                            'date': comment.date}
-
-            comment_list.append(comment_data)
-
-        match_data['comments'] = comment_list
-
-        return json.dumps(match_data)
+        return json.dumps(get_match_data(match))
 
     else:
         return abort(405)
+
+
+def get_match_data(match):
+    match_data = {'location': match.name_location,
+                  'created_date': match.created_date,
+                  'cur_players': match.cur_players,
+                  'max_players': match.max_players,
+                  'match_id': match.id,
+                  # 'started_by': match.started_by,
+                  'game_on_date': match.game_on_date}
+
+    #  Get all players currently in the lobby for the game
+    player_list = []
+    for user in User.query.filter(User.played.any(id=match.id)).all():
+        player_data = {'id': user.id,
+                       'name': user.name,
+                       'email': user.email}
+
+        if user.picture:
+            player_data['picture'] = user.picture
+
+        player_list.append(player_data)
+
+    match_data['played_by'] = player_list
+
+    #  Get all comments posted on the current game
+    comment_list = []
+    for comment in Message.query.filter(Message.posted_on.any(id=match.id)).all():
+        comment_data = {'id': comment.id,
+                        'author': comment.author_id,
+                        'message': comment.message,
+                        'date': comment.date}
+
+        comment_list.append(comment_data)
+
+    match_data['comments'] = comment_list
+    return match_data
 
 
 @app.route("/matches/<match_id>", methods=["POST"])
@@ -664,13 +667,14 @@ def join_match(match_id):
         return abort(401)
 
     if request.method in ["GET", "POST"]:
-        if match_id not in User.query.filter(User.played.any(id=match_id)).all():
-            g.user.plays.append(match_id)
-
+        match = Match.query.get(match_id)
+        if g.user not in match.played_by:
+            match.played_by.append(g.user)
         else:
-            g.user.plays.remove(match_id)
+            match.played_by.remove(g.user)
+        db.session.commit()
 
-        return "HTTP 200", 200
+        return json.dumps(get_match_data(match))
 
     else:
         return abort(405)
