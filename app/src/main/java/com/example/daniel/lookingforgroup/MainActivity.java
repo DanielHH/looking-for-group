@@ -20,15 +20,14 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        String tokenDic = sp.getString("token", "");
-        if(sp.contains("token") && (tokenDic.length())>30) {
+        String token = sp.getString("token", "");
+        if(sp.contains("token") && (token.length())>30) {
             setContentView(R.layout.activity_main);
         }
         else{
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
@@ -42,10 +41,17 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         startActivity(intent);
     }
 
+    public void goToMyProfile(View view) {
+        Intent intent = new Intent(this, EditProfileActivity.class);
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        String id = sp.getString("userId","");
+        intent.putExtra("EXTRA_USER_ID", id);
+        startActivity(intent);
+    }
+
     public void goToOpenGames(View view) {
         Intent intent = new Intent(this, OpenGamesActivity.class);
         startActivity(intent);
-        
        // new DownloadFilesTask().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/");
     }
 
@@ -66,20 +72,18 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
 
     @Override
     public void processFinish(String response){
-        System.out.println(response);
         //TODO: Handle different responses
-        if(response.equals("200")) {
+        if(response.equals("HTTP 200")) {
+            Toast.makeText(this, "Logged out!", Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-        else if(response.equals("401")) {
-            Toast.makeText(this, "Wrong token. Can't logout! lol", Toast.LENGTH_SHORT).show();
+        else {
+            Toast.makeText(this, response, Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
-            String token = sp.getString("token", "");
-            System.out.println("Hopefully nothing will be printed after this colon: " + token);
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
