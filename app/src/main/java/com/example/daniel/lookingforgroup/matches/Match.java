@@ -93,6 +93,8 @@ public class Match implements Parcelable {
         return location;
     }
 
+    public int getMatchId() {return matchId;}
+
     private static int lastMatchId = 0;
 
     public static ArrayList<Match> createMatchList(int numMatches) {

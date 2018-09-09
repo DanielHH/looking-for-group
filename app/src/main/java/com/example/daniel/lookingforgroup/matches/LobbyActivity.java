@@ -1,19 +1,41 @@
 package com.example.daniel.lookingforgroup.matches;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.daniel.lookingforgroup.AsyncResponse;
+import com.example.daniel.lookingforgroup.GetData;
+import com.example.daniel.lookingforgroup.PostData;
 import com.example.daniel.lookingforgroup.R;
 
-public class LobbyActivity extends AppCompatActivity {
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     private Match match;
     Button joinButton;
+    SharedPreferences sp;
+
+    int curPlayers;
+    int maxPlayers;
+    String title;
+    String location;
+    int id;
+
+    TextView titleView;
+    TextView locationView;
+    View fractionView;
+    TextView numView;
+    TextView denView;
+
+    JSONArray players; // Contains info for all players in a match
+    JSONArray comments; // Contains all comments for the match
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -25,21 +47,28 @@ public class LobbyActivity extends AppCompatActivity {
         match = (Match) data.getParcelable("match");
         assert match != null;
 
-        int curPlayers = match.getCurrentPlayers();
-        int maxPlayers = match.getMaxPlayers();
-        String title = match.getName();
-        String location = match.getLocation();
+        curPlayers = match.getCurrentPlayers();
+        maxPlayers = match.getMaxPlayers();
+        title = match.getName();
+        location = match.getLocation();
 
-        TextView titleView = findViewById(R.id.titleViewGame);
-        View fractionView = findViewById(R.id.fractionViewGame);
-        TextView numView = fractionView.findViewById(R.id.fracNum);
-        TextView denView = fractionView.findViewById(R.id.fracDen);
+        id = match.getMatchId() + 1;
+        // There is a strange error when creating match objects where the id returned by the
+        // response is decremented by one. This is a temporary solution.
+
         joinButton = findViewById(R.id.joinButtonViewGame);
+        titleView = findViewById(R.id.titleViewGame);
+        locationView = findViewById(R.id.locationViewGame);
+        fractionView = findViewById(R.id.fractionViewGame);
+        numView = fractionView.findViewById(R.id.fracNum);
+        denView = fractionView.findViewById(R.id.fracDen);
+
+        getMatchData();
 
         joinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                joinGame();
+                joinOrLeaveGame();
             }
         });
 
@@ -47,17 +76,69 @@ public class LobbyActivity extends AppCompatActivity {
         numView.setText(String.valueOf(curPlayers));
         denView.setText(String.valueOf(maxPlayers));
 
-        if (curPlayers < maxPlayers) {
-            joinButton.setEnabled(true);
-        } else joinButton.setEnabled(false);
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
 
-    private void joinGame() {
-        // TODO: send a join game request to the server
-        // TODO: change the function of the joinButton to allow the player to leave the match
+    private void getMatchData() {
+        GetData getData = new GetData();
+        getData.delegate = this;
+        StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
+        url.append(id);
+        try {
+            getData.execute(url.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void processFinish(String response) {
+        try {
+            JSONObject data = new JSONObject(response);
+            players = data.getJSONArray("played_by");
+            comments = data.getJSONArray("comments");
+            curPlayers = data.getInt("cur_players");
+            numView.setText(String.valueOf(curPlayers));
+            int myId = Integer.parseInt(sp.getString("userId", "-1"));
+            joinButton.setEnabled(true);
+
+            if (curPlayers < maxPlayers) {
+                joinButton.setText("Join");
+            } else if (isInPlayers(myId)) {
+                joinButton.setText("Leave");
+            } else {
+                joinButton.setEnabled(false);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isInPlayers(Integer myId) {
+        try {
+            for (int i = 0; i < players.length(); i++) {
+                JSONObject player = players.getJSONObject(i);
+                if (player.getInt("id") == myId) {
+                    return true;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void joinOrLeaveGame() {
+        PostData postData = new PostData();
+        postData.setSP(sp);
+        postData.delegate = this;
+        StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
+        url.append(id);
+        url.append("/join");
+        try {
+            postData.execute(url.toString(), "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
