@@ -46,6 +46,19 @@
         app:layout_constraintStart_toEndOf="@id/imageViewGame"
         app:layout_constraintTop_toBottomOf="@id/titleViewGame"/>
 
+    <TextView
+        android:id="@+id/locationViewGame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="location"
+        app:layout_constraintTop_toBottomOf="@+id/descViewGame"
+        app:layout_constraintStart_toStartOf="@id/descViewGame"
+        android:layout_marginTop="5dp"
+        android:textSize="6pt"
+        android:maxWidth="180dp"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
     <View
         android:id="@+id/dividerViewGame"
         android:layout_width="fill_parent"
@@ -82,6 +95,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dividerViewGame"
         />
+
 
 
 </android.support.constraint.ConstraintLayout>
