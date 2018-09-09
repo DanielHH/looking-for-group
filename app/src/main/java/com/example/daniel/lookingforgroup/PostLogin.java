@@ -48,6 +48,8 @@ public class PostLogin extends AsyncTask<String, Void, String[]> {
             editor.apply();
             editor.putString("userId", id);
             editor.apply();
+            String tokenDic = sp.getString("token", "");
+            System.out.println("Token: " + tokenDic);
         } catch (JSONException e) {
             e.printStackTrace();
         }

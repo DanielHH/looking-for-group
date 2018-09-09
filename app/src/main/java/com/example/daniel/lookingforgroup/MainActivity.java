@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         EditText editText = (EditText) findViewById(R.id.editText);
         String gameName = editText.getText().toString();
         intent.putExtra(EXTRA_MESSAGE, gameName);
+        startActivity(intent);
     }
 
     public void goToMyProfile(View view) {
@@ -73,9 +74,9 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
 
     @Override
     public void processFinish(String response){
-        System.out.println(response);
         //TODO: Handle different responses
         if(response.equals("200")) {
+            Toast.makeText(this, "Logged out!", Toast.LENGTH_SHORT).show();
             SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
             sp.edit().remove("token").apply();
             Intent intent = new Intent(this, LoginActivity.class);

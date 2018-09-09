@@ -54,9 +54,6 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
 
     @Override
     public void processFinish(String[] response){
-        System.out.println(response[0]);
-        //TODO: Handle different responses
-
         if(response[0].equals("200")) {
             Toast.makeText(this, "Logged in successfully!", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, MainActivity.class);

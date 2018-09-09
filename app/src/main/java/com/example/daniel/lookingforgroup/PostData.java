@@ -23,9 +23,8 @@ public class PostData extends AsyncTask<String, Void, String> {
         int result = 0;
         String resultString = "";
         String token = "";
-        String tokenDic = sp.getString("token", "");
-        if (sp.contains("token") && (tokenDic.length())>30) {
-            token = tokenDic.substring(11, 124);
+        if (sp.contains("token")) {
+            token = sp.getString("token", "");
         }
 
         RequestBody body = RequestBody.create(JSON, params[1]);
