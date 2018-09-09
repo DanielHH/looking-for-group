@@ -41,6 +41,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_match_lobby);
+        sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
 
         Bundle data = getIntent().getExtras();
         assert data != null;
@@ -73,6 +74,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         });
 
         titleView.setText(title);
+        locationView.setText(location);
         numView.setText(String.valueOf(curPlayers));
         denView.setText(String.valueOf(maxPlayers));
 
@@ -98,17 +100,21 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
             players = data.getJSONArray("played_by");
             comments = data.getJSONArray("comments");
             curPlayers = data.getInt("cur_players");
-            numView.setText(String.valueOf(curPlayers));
             int myId = Integer.parseInt(sp.getString("userId", "-1"));
+
             joinButton.setEnabled(true);
 
-            if (curPlayers < maxPlayers) {
-                joinButton.setText("Join");
-            } else if (isInPlayers(myId)) {
+            if (isInPlayers(myId)) {
                 joinButton.setText("Leave");
+            } else if (curPlayers < maxPlayers) {
+                joinButton.setText("Join");
             } else {
                 joinButton.setEnabled(false);
+                joinButton.setText("Full");
             }
+
+            // TODO: create CommentsAdapter and Comments object
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

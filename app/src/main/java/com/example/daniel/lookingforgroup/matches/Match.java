@@ -32,7 +32,7 @@ public class Match implements Parcelable {
         parcel.writeInt(maxPlayers);
         parcel.writeInt(curPlayers);
         parcel.writeValue(createdDate);
-        parcel.writeInt(matchId);
+        parcel.writeInt(matchId); // Strange behavior when writing to parcel
     }
 
     public static final Parcelable.Creator<Match> CREATOR
@@ -53,14 +53,6 @@ public class Match implements Parcelable {
         curPlayers = parcel.readInt();
         createdDate = (Date) parcel.readValue(ClassLoader.getSystemClassLoader());
         matchId = parcel.readInt();
-    }
-
-    private Match(String gameName) {
-        this.gameName = gameName;
-        this.location = "nowhere";
-        this.maxPlayers = 3;
-        this.curPlayers = 1;
-        this.createdDate = new Date();
     }
 
     private Match(JSONObject matchData) {
@@ -94,18 +86,6 @@ public class Match implements Parcelable {
     }
 
     public int getMatchId() {return matchId;}
-
-    private static int lastMatchId = 0;
-
-    public static ArrayList<Match> createMatchList(int numMatches) {
-        ArrayList<Match> matches = new ArrayList<Match>();
-
-        for (int i = 1; i <= numMatches; i++) {
-            matches.add(new Match("Match: " + ++lastMatchId));
-        }
-
-        return matches;
-    }
 
     public static ArrayList<Match> createMatchList(JSONArray matches) {
         ArrayList<Match> matchList = new ArrayList<Match>();

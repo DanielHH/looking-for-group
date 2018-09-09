@@ -30,6 +30,11 @@ class DataTest(unittest.TestCase):
         self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
                          data=json.dumps({'location': 'everywhere', 'max_players': None, 'game_name': 'Robot Wars'}))
 
+    def join_match(self, token):
+        rv = self.server.post('/matches/1/join', headers={'Content-Type': 'application/json', 'Authorization': token},
+                         data=json.dumps({}))
+        return rv
+
     def convert_to_literal(self, rv):
         rv = rv.data.decode(encoding='utf-8')
         rv = ast.literal_eval(rv)
@@ -182,6 +187,21 @@ class DataTest(unittest.TestCase):
         self.assertEqual(rv['location'], 'here', 'Failed in post matches')
         self.assertEqual(rv['match_id'], 1, 'Failed in post matches')
         self.assertEqual(rv['max_players'], 3, 'Failed in post matches')
+
+    def test_join_match(self):
+        self.create_users()
+        post_token = self.login_user('user@email.com')
+        self.post_matches(post_token)
+
+        join_token = self.login_user('eriny656@student.liu.se')
+
+        rv = json.loads(self.join_match(join_token).data)
+        print(rv["played_by"])
+        self.assertEqual(rv["played_by"][0]["email"], "user@email.com", "Failed in join match")
+
+        rv = json.loads(self.join_match(post_token).data)
+        print(rv["played_by"])
+        self.assertEqual(rv["played_by"][0]["email"], "eriny656@student.liu.se", "Failed in leave match")
 
     def test_view_profile(self):
         self.create_users()
