@@ -7,10 +7,13 @@
 
     <ImageView
         android:id="@+id/profilePicture"
-        android:layout_width="121dp"
-        android:layout_height="132dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="center"
         android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/ic_launcher" />
