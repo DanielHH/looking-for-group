@@ -1,5 +1,8 @@
 package com.example.daniel.lookingforgroup.matches;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -7,7 +10,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class Match {
+public class Match implements Parcelable {
     private String gameName;
     private String location;
     private int maxPlayers;
@@ -15,6 +18,42 @@ public class Match {
     private Date createdDate;
     private int matchId;
 
+    /* Parcelable implementation for passing between activities */
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(gameName);
+        parcel.writeString(location);
+        parcel.writeInt(maxPlayers);
+        parcel.writeInt(curPlayers);
+        parcel.writeValue(createdDate);
+        parcel.writeInt(matchId);
+    }
+
+    public static final Parcelable.Creator<Match> CREATOR
+            = new Parcelable.Creator<Match>() {
+        public Match createFromParcel(Parcel in) {
+            return new Match(in);
+        }
+
+        public Match[] newArray(int size) {
+            return new Match[size];
+        }
+    };
+
+    private Match(Parcel parcel) {
+        gameName = parcel.readString();
+        location = parcel.readString();
+        maxPlayers = parcel.readInt();
+        curPlayers = parcel.readInt();
+        createdDate = (Date) parcel.readValue(ClassLoader.getSystemClassLoader());
+        matchId = parcel.readInt();
+    }
 
     private Match(String gameName) {
         this.gameName = gameName;

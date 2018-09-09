@@ -253,12 +253,13 @@ def login_user():
 
         elif user.check_password(password):
             token = user.generate_auth_token()
+            user_id = user.id
 
             if DEBUG:
                 print("user: " + user.email)
                 print("token: " + token)
 
-            return json.dumps({'token': token}), 200
+            return json.dumps({'token': token, 'id': user_id}), 200
 
         else:
             return "email or password incorrect", 400
@@ -269,7 +270,7 @@ def login_user():
 
 @app.route("/user/<user_id>", methods=["GET"])
 def view_profile(user_id):
-    user = User.query.filter_by(id=user_id)
+    user = User.query.get(user_id)
     if not user:
         return abort(400)
 
@@ -283,13 +284,15 @@ def view_profile(user_id):
             match_data = {'id': match.id,
                           'amt_players': match.cur_players,
                           'game_on_date': match.game_on_date,
-                          'started_by': match.started_by,
+                          # 'started_by': match.started_by,
                           'location': match.name_location}
 
             match_list.append(match_data)
 
         data['matches_played'] = match_list
 
+        # TODO: Fix follows for users
+        """
         follows_list = []
         for user in User.query.filter(User.follows.any(id=user_id)).all():
             user_data = {'id': user.id,
@@ -300,6 +303,7 @@ def view_profile(user_id):
             follows_list.append(user_data)
 
         data['follows'] = follows_list
+        """
 
         return json.dumps(data)
 
