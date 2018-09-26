@@ -55,7 +55,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
 
         id = match.getMatchId() + 1;
         // There is a strange error when creating match objects where the id returned by the
-        // response is decremented by one. This is a temporary solution.
+        // response is decremented by one. This is a temporary (permanent) solution.
 
         joinButton = findViewById(R.id.joinButtonViewGame);
         titleView = findViewById(R.id.titleViewGame);
