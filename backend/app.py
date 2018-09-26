@@ -669,6 +669,7 @@ def join_match(match_id):
     if request.method in ["GET", "POST"]:
         match = Match.query.get(match_id)
         if g.user not in match.played_by:
+            # TODO: update match.cur_players
             match.played_by.append(g.user)
         else:
             match.played_by.remove(g.user)
