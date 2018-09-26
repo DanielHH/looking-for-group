@@ -6,12 +6,19 @@ import android.os.Parcel;
 import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.daniel.lookingforgroup.AsyncResponse;
+import com.example.daniel.lookingforgroup.Comment;
+import com.example.daniel.lookingforgroup.CommentsAdapter;
 import com.example.daniel.lookingforgroup.GetData;
 import com.example.daniel.lookingforgroup.PostData;
 import com.example.daniel.lookingforgroup.R;
@@ -20,12 +27,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     private Match match;
     Button joinButton;
     SharedPreferences sp;
+    RecyclerView rvComments;
+    CommentsAdapter adapter;
+    EditText textLeaveComment;
+    Button buttonLeaveComment;
 
     int curPlayers;
     int maxPlayers;
@@ -34,13 +46,15 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     int id;
 
     JSONArray players; // Contains info for all players in a match
-    JSONArray comments; // Contains all comments for the match
+    ArrayList<Comment> comments; // Contains all comments for the match
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_match_lobby);
         sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+
+        rvComments = (RecyclerView) findViewById(R.id.lobbyComments);
 
         Bundle data = getIntent().getExtras();
         assert data != null;
@@ -65,12 +79,22 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         View fractionView = findViewById(R.id.fractionViewGame);
         TextView numView = fractionView.findViewById(R.id.fracNum);
         TextView denView = fractionView.findViewById(R.id.fracDen);
+        textLeaveComment = findViewById(R.id.lobbyAddCommentText);
 
+        // rvComments set size after all other views have been initialized
+        rvComments.setHasFixedSize(true);
+        rvComments.setLayoutManager(new LinearLayoutManager(this));
 
         joinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 joinOrLeaveGame();
+            }
+        });
+        buttonLeaveComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                leaveComment();
             }
         });
 
@@ -99,11 +123,18 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         try {
             JSONObject data = new JSONObject(response);
             players = data.getJSONArray("played_by");
-            comments = data.getJSONArray("comments");
+
+            JSONArray commentData = data.getJSONArray("comments");
+            comments = Comment.createCommentList(commentData);
+            adapter = new CommentsAdapter(comments);
+            rvComments.setAdapter(adapter);
+
             curPlayers = data.getInt("cur_players");
             int myId = Integer.parseInt(sp.getString("userId", "-1"));
 
+            // Both buttons reenable after the response has been returned
             joinButton.setEnabled(true);
+            buttonLeaveComment.setEnabled(true);
 
             if (isInPlayers(myId)) {
                 joinButton.setText("Leave");
@@ -113,8 +144,6 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
                 joinButton.setEnabled(false);
                 joinButton.setText("Full");
             }
-
-            // TODO: create CommentsAdapter and Comments object
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -138,6 +167,10 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     }
 
     private void joinOrLeaveGame() {
+        // Disable buttons to prevent repeated requests to the server
+        buttonLeaveComment.setEnabled(false);
+        joinButton.setEnabled(false);
+
         PostData postData = new PostData();
         postData.delegate = this;
         StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
@@ -145,6 +178,27 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         url.append("/join");
         try {
             postData.execute(url.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void leaveComment() {
+        if (textLeaveComment.getText().toString().equals("")) return;
+
+        // Disable buttons to prevent repeated requests to the server
+        buttonLeaveComment.setEnabled(false);
+        joinButton.setEnabled(false);
+
+        String postBody = textLeaveComment.getText().toString();
+
+        PostData postData = new PostData();
+        postData.delegate = this;
+        StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
+        url.append(id);
+
+        try {
+            postData.execute(url.toString(), postBody);
         } catch (Exception e) {
             e.printStackTrace();
         }
