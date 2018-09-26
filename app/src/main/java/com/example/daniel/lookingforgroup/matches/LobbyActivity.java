@@ -2,9 +2,6 @@ package com.example.daniel.lookingforgroup.matches;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.PersistableBundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     private Match match;
@@ -44,6 +40,12 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     String title;
     String location;
     int id;
+
+    TextView titleView;
+    TextView locationView;
+    View fractionView;
+    TextView numView;
+    TextView denView;
 
     JSONArray players; // Contains info for all players in a match
     ArrayList<Comment> comments; // Contains all comments for the match
@@ -68,17 +70,16 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
 
         id = match.getMatchId() + 1;
         // There is a strange error when creating match objects where the id returned by the
-        // response is decremented by one. This is a temporary solution.
+        // response is decremented by one. This is a temporary (permanent) solution.
 
         joinButton = findViewById(R.id.joinButtonViewGame);
+        titleView = findViewById(R.id.titleViewGame);
+        locationView = findViewById(R.id.locationViewGame);
+        fractionView = findViewById(R.id.fractionViewGame);
+        numView = fractionView.findViewById(R.id.fracNum);
+        denView = fractionView.findViewById(R.id.fracDen);
 
         getMatchData();
-
-        TextView titleView = findViewById(R.id.titleViewGame);
-        TextView locationView = findViewById(R.id.locationViewGame);
-        View fractionView = findViewById(R.id.fractionViewGame);
-        TextView numView = fractionView.findViewById(R.id.fracNum);
-        TextView denView = fractionView.findViewById(R.id.fracDen);
         textLeaveComment = findViewById(R.id.lobbyAddCommentText);
 
         // rvComments set size after all other views have been initialized
@@ -154,15 +155,13 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         try {
             for (int i = 0; i < players.length(); i++) {
                 JSONObject player = players.getJSONObject(i);
-                int playerId = player.getInt("id");
-                if (playerId == myId) {
+                if (player.getInt("id") == myId) {
                     return true;
                 }
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
@@ -172,12 +171,13 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         joinButton.setEnabled(false);
 
         PostData postData = new PostData();
+        postData.setSP(sp);
         postData.delegate = this;
         StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
         url.append(id);
         url.append("/join");
         try {
-            postData.execute(url.toString());
+            postData.execute(url.toString(), "");
         } catch (Exception e) {
             e.printStackTrace();
         }
