@@ -647,6 +647,7 @@ def post_comment(match_id):
 
     if request.method == "POST":
         comment = request.get_json()
+        print(comment)
         if len(comment) > 140:
             return abort(400)
         # [2:-1] removes extra symbols added by binascii
@@ -702,6 +703,10 @@ def post_dummy_data():
     db.session.add(Match(2, "C-huset", user_uid))
 
     db.session.commit()
+
+    if DEBUG:
+        print(Match.query.all())
+
     return "HTTP 200", 200
 
 
