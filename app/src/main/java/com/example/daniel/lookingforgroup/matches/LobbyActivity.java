@@ -83,6 +83,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
 
         getMatchData();
         textLeaveComment = findViewById(R.id.lobbyAddCommentText);
+        buttonLeaveComment = findViewById(R.id.lobbyPostButton);
 
         // rvComments set size after all other views have been initialized
         rvComments.setHasFixedSize(true);
@@ -198,6 +199,8 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         postData.delegate = this;
         StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
         url.append(id);
+
+        postData.setSP(sp);
 
         try {
             postData.execute(url.toString(), postBody);
