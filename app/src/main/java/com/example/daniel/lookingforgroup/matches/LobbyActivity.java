@@ -79,6 +79,8 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         numView = fractionView.findViewById(R.id.fracNum);
         denView = fractionView.findViewById(R.id.fracDen);
 
+        // TODO: FIGURE OUT WHY THIS KEEPS CRASHING
+
         getMatchData();
         textLeaveComment = findViewById(R.id.lobbyAddCommentText);
 

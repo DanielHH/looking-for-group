@@ -87,10 +87,11 @@
         app:layout_constraintStart_toEndOf="@id/imageViewGame" />
 
     <include
-        layout="@layout/item_comment"
+        layout="@layout/lobby_comments"
         android:id="@+id/lobbyComments"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dividerViewGame"
