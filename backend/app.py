@@ -587,7 +587,7 @@ def get_match(match_id):
     if not matches:
         return abort(400)
 
-    match = Match.query.filter_by(id=match_id).first()
+    match = Match.query.get(match_id)
     if not match:
         return abort(400)
 
@@ -643,11 +643,15 @@ def post_comment(match_id):
 
     match = Match.query.get(match_id)
     if not match:
+        print("match id NOT located in database")
         return abort(400)
 
+    print("match id located in database")
+
     if request.method == "POST":
+        print("request has value: " + request)
         comment = request.get_json()
-        print(comment)
+        print("request's json component: " + comment)
         if len(comment) > 140:
             return abort(400)
         # [2:-1] removes extra symbols added by binascii
