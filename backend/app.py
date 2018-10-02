@@ -102,6 +102,7 @@ class Message(db.Model):
     __tablename__ = 'message'
     id = db.Column(db.String(24), primary_key=True)
     message = db.Column(db.String(140), unique=False, nullable=False)
+    author_id = db.Column(db.Integer, unique=False, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
 
     posted_on = db.relationship('Match',
@@ -111,14 +112,14 @@ class Message(db.Model):
                               secondary=read_by_table,
                               back_populates='read')
 
-    def __init__(self, message, author_id, message_id, match_id=None):
+    def __init__(self, message, author_id, message_id, match=None):
         self.message = message
         self.id = message_id
         self.author_id = author_id
         self.date = datetime.datetime.now()
 
-        if match_id:
-            self.posted_on.append(match_id)
+        if match:
+            self.posted_on.append(match)
             #  Posts message as a comment on the match indicated by match_id
 
     def __repr__(self):
@@ -641,18 +642,19 @@ def post_comment(match_id):
     if g.user is None:
         return abort(401)
 
-    match = Match.query.filter_by(id=match_id).first()
+    match = Match.query.get(match_id)
     if not match:
         return abort(400)
 
     if request.method == "POST":
         comment = request.get_json()
+        print(comment)
         if len(comment) > 140:
             return abort(400)
         # [2:-1] removes extra symbols added by binascii
         # TODO: control for duplicate message ids
         message_id = str(binascii.b2a_hex(os.urandom(12)))[2:-1]
-        db.session.add(Message(comment, g.user.id, message_id, match_id))
+        db.session.add(Message(comment, g.user.id, message_id, match))
         db.session.commit()
 
         return "HTTP 200", 200
@@ -702,6 +704,10 @@ def post_dummy_data():
     db.session.add(Match(2, "C-huset", user_uid))
 
     db.session.commit()
+
+    if DEBUG:
+        print(Match.query.all())
+
     return "HTTP 200", 200
 
 
