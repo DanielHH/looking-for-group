@@ -30,7 +30,9 @@ import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -43,6 +45,8 @@ import okhttp3.Response;
 //TODO; Remake ResisterUserActivity to be a fragment of LoginActivity
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
+    private String email;
+    private File imageFile = null;
     private File destination = null;
     private String imgPath = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
@@ -81,7 +85,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
 
         try {
             //execute the async task
-            postData.execute(url, jsonData);
+            postData.execute(url, jsonData, imageFile, "image_" + email + ".jpg");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -156,22 +160,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                             dialog.dismiss();
                             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                                // Create the File where the photo should go
-                                File photoFile = null;
-                                try {
-                                    photoFile = createImageFile();
-                                } catch (IOException ex) {
-                                    ex.printStackTrace();
-                                }
-                                // Continue only if the File was successfully created
-                                if (photoFile != null) {
-                                    Uri photoURI = FileProvider.getUriForFile(RegisterUserActivity.this,
-                                            "com.example.android.fileprovider",
-                                            photoFile);
-                                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                                    startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
-                                }
-
+                                startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
                             }
                         } else if (options[item].equals("Choose From Gallery")) {
                             dialog.dismiss();
@@ -193,27 +182,33 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_IMAGE_CAMERA && resultCode == RESULT_OK) {
-            // Bundle extras = data.getExtras(); // <--- This can probably be removed
-            bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath);
-            profileAvatar.setImageBitmap(bitmap);
+            Bundle extras = data.getExtras();
+            bitmap = (Bitmap) extras.get("data");
         }
         else if (requestCode == PICK_IMAGE_GALLERY && resultCode == RESULT_OK) {
             Uri selectedImage = data.getData();
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-               /*
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);*/
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
                 Log.e("Activity", "Pick from Gallery::>>> ");
 
                 imgPath = getRealPathFromURI(selectedImage);
                 destination = new File(imgPath.toString());
-                profileAvatar.setImageBitmap(bitmap);
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        Bitmap finalBitmap = bitmapScaler(bitmap);
+        profileAvatar.setImageBitmap(finalBitmap);
+        persistImage(finalBitmap, "profilePic");
+    }
+
+    private Bitmap bitmapScaler(Bitmap bitmap) {
+        final int goodWidth = 1500;
+        float factor = goodWidth / (float) bitmap.getWidth();
+        return Bitmap.createScaledBitmap(bitmap, goodWidth, (int) (bitmap.getHeight() * factor), true);
     }
 
     public String getRealPathFromURI(Uri contentUri) {
@@ -224,13 +219,31 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         return cursor.getString(column_index);
     }
 
+    private void persistImage(Bitmap bitmap, String name) {
+        File filesDir = getApplicationContext().getFilesDir();
+        imageFile = new File(filesDir, name + ".jpg");
+
+        OutputStream os;
+        try {
+            os = new FileOutputStream(imageFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+        }
+    }
+
     private String getFormattedDataString() {
         //TODO: Fix image.
+        String contentProfileAvatar = "";
+        /*
+        Bitmap bitmapProfileAvatar = ((BitmapDrawable)profileAvatar.getDrawable()).getBitmap();
         String contentProfileAvatar;
-        if (bitmap != null) {
+        if (bitmapProfileAvatar != null) {
             final int COMPRESSION_QUALITY = 5;
             ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
+            bitmapProfileAvatar.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
                     byteArrayBitmapStream);
             byte[] b = byteArrayBitmapStream.toByteArray();
             contentProfileAvatar = Base64.encodeToString(b, Base64.DEFAULT);
@@ -238,6 +251,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         else {
             contentProfileAvatar = "";
         }
+        */
 
         TextView tName = findViewById(R.id.nameRegister);
         String name = tName.getText().toString();
@@ -247,7 +261,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         }
 
         TextView tEmail = findViewById(R.id.emailRegister);
-        String email = tEmail.getText().toString();
+        email = tEmail.getText().toString();
         if (!isEmailValid(email)) {
             Toast.makeText(this, "Not a valid email", Toast.LENGTH_SHORT).show();
             return "";
