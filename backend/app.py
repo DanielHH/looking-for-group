@@ -211,6 +211,9 @@ def index():
 @app.route("/user", methods=["POST"])
 def create_user():
     if request.method == "POST":
+        if DEBUG:
+            print(request.get_json(force=True))
+
         image = None
         filename = None
 
