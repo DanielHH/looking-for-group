@@ -212,7 +212,7 @@ def index():
 def create_user():
     if request.method == "POST":
         if DEBUG:
-            print(request.get_json(force=True))
+            print(request.get_data())
 
         image = None
         filename = None
@@ -224,7 +224,7 @@ def create_user():
             filename = image.filename
             image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        data = request.get_json(force=True)
+        data = json.loads(request.get_data())
 
         if DEBUG:
             print("email: " + data.get('email'))
