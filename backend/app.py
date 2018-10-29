@@ -195,7 +195,7 @@ def verify_auth_token(token):
         return None
     except BadSignature:
         return None
-    user = User.query.filter_by(id=data).first()
+    user = User.query.get(data)
     return user
 
 
@@ -382,7 +382,7 @@ def get_message(message_id):
         return abort(400)
 
     elif request.method == "GET":
-        message = Message.query.filter_by(id=message_id).first()
+        message = Message.query.get(message_id)
         # message is type Message
         if message:
             read_by = []
@@ -404,7 +404,7 @@ def delete_message(message_id):
     messages = Message.query.all()
     if not messages:
         return abort(400)
-    message = Message.query.filter_by(id=message_id).first()
+    message = Message.query.get(message_id)
     if not message:
         return abort(400)
 
@@ -475,7 +475,7 @@ def flag_as_read(message_id):
         return abort(400)
 
     elif request.method == "POST":
-        message = Message.query.filter_by(id=message_id).first()
+        message = Message.query.get(message_id)
         if message:
             user = User.query.filter_by(email=g.user.email).first()
             if user not in message.read_by:
@@ -665,12 +665,8 @@ def post_comment(match_id):
         print("match id NOT located in database")
         return abort(400)
 
-    print("match id located in database")
-
     if request.method == "POST":
-        print("request has value: " + request)
         comment = request.get_json()
-        print("request's json component: " + comment)
         if len(comment) > 140:
             return abort(400)
         # [2:-1] removes extra symbols added by binascii
