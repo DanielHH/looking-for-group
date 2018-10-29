@@ -40,6 +40,9 @@ follow_table = db.Table('follow', db.metadata,
                            db.Column('follower_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                            db.Column('followed_id', db.Integer, db.ForeignKey('user.id'), primary_key=True))
 
+''' DOING SOME UPLOAD MAGIC '''
+app.config["UPLOAD_FOLDER"] = "/photos"
+
 
 class Token(db.Model):
     __tablename__ = 'token'
@@ -60,7 +63,7 @@ class User(db.Model):
     email = db.Column(db.String(127), unique=True, nullable=False)
     name = db.Column(db.String, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    picture = db.Column(db.LargeBinary, nullable=True)
+    picture = db.Column(db.String, nullable=True)
 
     tokens = db.relationship('Token')
     read = db.relationship('Message',
@@ -70,10 +73,11 @@ class User(db.Model):
                              secondary=matches_table,
                              back_populates='played_by')
 
-    def __init__(self, email, name, password):
+    def __init__(self, email, name, password, image_name=''):
         self.email = email
         self.name = name
         self.password = generate_password_hash(password)
+        self.picture = image_name
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
@@ -207,10 +211,25 @@ def index():
 @app.route("/user", methods=["POST"])
 def create_user():
     if request.method == "POST":
-        data = request.get_json()
+        if DEBUG:
+            print(request.get_data())
+
+        image = None
+        filename = None
+
+        if 'image' in request.files:
+            image = request.files['image']
+
+        if image and image.filename != '':
+            filename = image.filename
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        data = json.loads(request.get_data())
 
         if DEBUG:
-            print("json: " + json.dumps(data))
+            print("email: " + data.get('email'))
+            print("name: " + data.get('name'))
+            print("password: " + data.get('password'))
 
         email = data['email']
 
@@ -221,7 +240,7 @@ def create_user():
         name = data['name']
         password = data['password']
 
-        user = User(email, name, password)
+        user = User(email, name, password, filename)
         db.session.add(user)
         db.session.commit()
 
