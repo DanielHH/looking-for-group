@@ -256,6 +256,17 @@ def create_user():
         return abort(405)
 
 
+@app.route("/user/verify", methods=["POST", "GET"])
+@verify_login
+def verify_user():
+    if g.user is None:
+        return abort(401)
+    elif request.method in ["POST", "GET"]:
+        return "HTTP 200", 200
+    else:
+        return abort(405)
+
+
 @app.route("/user/login", methods=["POST"])
 def login_user():
     if request.method == "POST":
