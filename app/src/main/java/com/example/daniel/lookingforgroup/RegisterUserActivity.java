@@ -42,10 +42,13 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-//TODO; Remake ResisterUserActivity to be a fragment of LoginActivity
+//TODO: Remake ResisterUserActivity to be a fragment of LoginActivity
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
     private String email;
+    private String name;
+    private String password;
+    private String passwordRepeat;
     private File imageFile = null;
     private File destination = null;
     private String imgPath = null;
@@ -70,12 +73,13 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SubmitData();
+                //SubmitData();
+                SubmitMixedData();
             }
         });
     }
 
-    private void SubmitData() {
+    private void SubmitData() { //TODO: Remove this function if SubmitMixedData works.
         PostData postData = new PostData();
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
@@ -89,6 +93,37 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void SubmitMixedData() {
+        PostMixedData postMixedData = new PostMixedData();
+        postMixedData.delegate = this;
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        postMixedData.setSP(sp);
+        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user";
+
+        if (isValidInput() && imageFile != null) {
+            try {
+                //execute the async task
+                postMixedData.execute(
+                        url, "email", email, "name", name, "password", password,
+                        "image", "image_" + email + ".jpg", imageFile
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            try {
+                //execute the async task
+                postMixedData.execute(
+                        url, "email", email, "name", name, "password", password
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     @Override
@@ -116,7 +151,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
 
     String mCurrentPhotoPath;
 
-    private File createImageFile() throws IOException {
+    private File createImageFile() throws IOException { //TODO: Remove this function if SubmitMixedData works.
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -234,7 +269,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         }
     }
 
-    private String getFormattedDataString() {
+    private String getFormattedDataString() { //TODO: Remove this function if SubmitMixedData works.
         //TODO: Fix image.
         String contentProfileAvatar = "";
         /*
@@ -292,5 +327,40 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
 
     private boolean isPasswordValid(String password) {
         return password.length() > 6;
+    }
+
+
+    private boolean isValidInput() {
+        TextView tName = findViewById(R.id.nameRegister);
+        name = tName.getText().toString();
+        if (name.equals("")) {
+            Toast.makeText(this, "There's no name!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        TextView tEmail = findViewById(R.id.emailRegister);
+        email = tEmail.getText().toString();
+        if (!isEmailValid(email)) {
+            Toast.makeText(this, "Not a valid email", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        TextView tPassword = findViewById(R.id.passwordRegister);
+        password = tPassword.getText().toString();
+
+        TextView tPasswordRepeat = findViewById(R.id.passwordRepeatRegister);
+        passwordRepeat = tPasswordRepeat.getText().toString();
+
+        if (!isPasswordValid(password)) {
+            Toast.makeText(this, "Password has to consist of at least 7 characters.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (!password.equals(passwordRepeat)) {
+            Toast.makeText(this, "Passwords do not match!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        return true;
     }
 }
