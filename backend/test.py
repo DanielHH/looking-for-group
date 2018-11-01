@@ -19,6 +19,14 @@ class DataTest(unittest.TestCase):
         self.server.post('/messages', headers={'Content-Type': 'application/json', "Authorization": token},
                          data=json.dumps('Another message'))
 
+    def post_comments(self, token):
+        self.server.post('/matches/1', headers={'Content-Type': 'application/json', "Authorization": token},
+                         data=json.dumps('A comment'))
+        self.server.post('/matches/1', headers={'Content-Type': 'application/json', "Authorization": token},
+                         data=json.dumps('A second comment'))
+        self.server.post('/matches/1', headers={'Content-Type': 'application/json', "Authorization": token},
+                         data=json.dumps('Another comment'))
+
     def test_dummy(self):
         self.server.post('/dummy')
 
@@ -176,6 +184,19 @@ class DataTest(unittest.TestCase):
         self.assertEqual(rv[0]['location'], 'here', 'Failed in post matches')
         self.assertEqual(rv[0]['match_id'], 1, 'Failed in post matches')
         self.assertEqual(rv[0]['max_players'], 3, 'Failed in post matches')
+
+    def test_post_comment(self):
+        self.create_users()
+        user_token = self.login_user("user@email.com")
+
+        self.post_matches(user_token)
+        self.post_comments(user_token)
+
+        messages = app.Message.query.all()
+        message_list = []
+        for message in messages:
+            message_list.append(message.message)
+        self.assertEqual(message_list, ['A comment', 'A second comment', 'Another comment'], "Failed in post_messages")
 
     def test_get_match(self):
         self.create_users()
