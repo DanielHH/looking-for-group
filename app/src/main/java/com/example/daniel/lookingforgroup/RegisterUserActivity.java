@@ -76,9 +76,14 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //SubmitData();
                 i = r.nextInt();
-                SubmitMixedData();
+                if (imageFile == null) {
+                    SubmitData();
+                }
+                else {
+                    SubmitMixedData();
+                }
+
             }
         });
     }
