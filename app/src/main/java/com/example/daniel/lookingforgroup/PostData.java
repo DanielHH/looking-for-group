@@ -32,17 +32,7 @@ public class PostData extends AsyncTask<Object, Void, String> {
             token = sp.getString("token", "");
         }
         RequestBody body;
-        if (params[2] != null) {
-            body = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("email", "eric.nylander@hotmale.com")
-                    .addFormDataPart("name", "Eric")
-                    .addFormDataPart("password", "1234567")
-                    .addFormDataPart("image", (String) params[3], RequestBody.create(MEDIA_TYPE_JPEG, (File) params[2]))
-                    .build();
-        }
-        else {
-            body = RequestBody.create(JSON, (String) params[1]); //THIS CODE IS WORKING WHEN THERE ARE NO IMAGES.
-        }
+        body = RequestBody.create(JSON, (String) params[1]); //THIS CODE IS WORKING WHEN THERE ARE NO IMAGES.
         Request request = new Request.Builder()
                 .url((String)params[0])
                 .post(body)

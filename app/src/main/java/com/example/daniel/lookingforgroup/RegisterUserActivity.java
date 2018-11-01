@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -56,9 +57,11 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
+    private int i;
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private ImageView profileAvatar;
+    Random r = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -74,6 +77,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             @Override
             public void onClick(View view) {
                 //SubmitData();
+                i = r.nextInt();
                 SubmitMixedData();
             }
         });
@@ -102,27 +106,30 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         postMixedData.setSP(sp);
         String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user";
 
-        if (isValidInput() && imageFile != null) {
-            try {
-                //execute the async task
-                postMixedData.execute(
-                        url, "email", email, "name", name, "password", password,
-                        "image", "image_" + email + ".jpg", imageFile
-                );
-            } catch (Exception e) {
-                e.printStackTrace();
+        if (isValidInput()) {
+            if (imageFile != null) {
+                try {
+                    //execute the async task
+                    postMixedData.execute(
+                            url, "email", email, "name", name, "password", password,
+                            "image", "image_" + name + "_" + i + ".jpg", imageFile
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                try {
+                    //execute the async task
+                    postMixedData.execute(
+                            url, "email", email, "name", name, "password", password
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
-        else {
-            try {
-                //execute the async task
-                postMixedData.execute(
-                        url, "email", email, "name", name, "password", password
-                );
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
 
     }
 

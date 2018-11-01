@@ -42,9 +42,9 @@ public class PostMixedData extends AsyncTask<Object, Void, String> {
         }
         if (IMAGE_PARAMS != 0) {
             builderNew.addFormDataPart(
+                    (String) params[params.length-3],
                     (String) params[params.length-2],
-                    (String) params[params.length-1],
-                    RequestBody.create(MEDIA_TYPE_JPEG, (File) params[params.length])
+                    RequestBody.create(MEDIA_TYPE_JPEG, (File) params[params.length-1])
             );
         }
         MultipartBody body = builderNew.build();
