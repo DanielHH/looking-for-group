@@ -230,7 +230,8 @@ def create_user():
 
         try:
             data = json.loads(request.get_data())
-        except json.decoder.JSONDecodeError:
+        except Exception:
+            # Cannot find json.decoder for JSONDecodeError
             data = request.form
 
         if app.config['TESTING']:
