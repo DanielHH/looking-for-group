@@ -1,7 +1,7 @@
 import os
 import binascii
 import datetime
-from flask import Flask, request, json, jsonify, abort, g, flash, url_for
+from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -244,7 +244,7 @@ def create_user():
 
         if User.query.filter_by(email=email).first():
             abort(403)
-            #  403 error means user already exists. Should be handled in frontend.
+            # 403 error means user already exists. Should be handled in frontend.
 
         name = data['name']
         password = data['password']
@@ -303,6 +303,50 @@ def login_user():
 
         else:
             return "email or password incorrect", 400
+
+    else:
+        return abort(405)
+
+
+@app.route("/user/<user_id>/image", methods=["GET"])
+def get_profile_picture(user_id):
+    if request.method == "GET":
+        user = User.query.get(user_id)
+
+        if user and user.picture:
+            return send_from_directory(app.config('UPLOAD_FOLDER'), user.picture)
+
+        else:
+            return abort(403)
+            # The requested user does not exist, or the picture has not been uploaded
+
+    else:
+        return abort(405)
+
+
+@app.route("/images/<user_id>", methods=["POST"])
+@verify_login
+def post_profile_picture(user_id):
+    if g.user is None or g.user.id != user_id:
+        return abort(401)
+
+    elif request.method == "POST":
+        if 'image' not in request.files:
+            flash('No file part')
+            return abort(400)
+        image = request.files['image']
+
+        if image and image.filename != '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            if app.config['TESTING']:
+                print(url_for('uploaded_file', filename=filename))
+
+            g.user.set_picture(filename)
+            db.session.commit()
+
+            return "HTTP 200", 200
 
     else:
         return abort(405)
@@ -529,33 +573,6 @@ def read_unread_messages():
                                         'message': str(message),
                                         'id': message.id})
         return json.dumps(unread_messages)
-
-    else:
-        return abort(405)
-
-
-@app.route("/images/<user_email>", methods=["POST"])
-@verify_login
-def upload_image(user_email):
-    if g.user is None or g.user.email != user_email:
-        return abort(401)
-
-    elif request.method == "POST":
-        if 'file' not in request.files:
-            flash('No file part')
-            return abort(400)
-        file = request.files['file']
-
-        if file.filename == '':
-            flash("No selected file")
-            return abort(400)
-
-        if file and allowed_file(file.filename):
-            user = User.query.filter_by(email=user_email).first()
-            user.set_picture(secure_filename(file.filename))
-            db.session.commit()
-
-            return "HTTP 200", 200
 
     else:
         return abort(405)
