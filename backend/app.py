@@ -1,7 +1,7 @@
 import os
 import binascii
 import datetime
-from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_from_directory
+from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -42,8 +42,9 @@ follow_table = db.Table('follow', db.metadata,
 ''' DOING SOME UPLOAD MAGIC '''
 app.config["UPLOAD_FOLDER"] = "./photos"
 app.add_url_rule('/photos/<filename>', 'uploaded_file', build_only=True)
+
 app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
-    './photos': app.config['UPLOAD_FOLDER']
+    'opt/app-root/src/photos': app.config['UPLOAD_FOLDER']
 })
 
 
@@ -314,7 +315,9 @@ def get_profile_picture(user_id):
         user = User.query.get(user_id)
 
         if user and user.picture:
-            return send_from_directory(app.config('UPLOAD_FOLDER'), user.picture)
+            file = "." + url_for('uploaded_file', filename=user.picture)
+            # This works since url_for requires a relative path
+            return send_file(file)
 
         else:
             return abort(403)

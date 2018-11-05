@@ -3,7 +3,8 @@ import app
 import ast
 import json
 import time
-from io import StringIO
+import os
+from glob import glob
 
 
 class DataTest(unittest.TestCase):
@@ -58,6 +59,19 @@ class DataTest(unittest.TestCase):
         self.server.post('/user', headers={'Content-Type': 'application/json'},
                          data=json.dumps({'email': 'somon123@student.liu.se', 'name': 'somon123', 'password': 'password'}))
 
+    def create_test_file(self, filename):
+        f = open("./photos/" + filename, "w")
+        f.write("content\n")
+        f.close()
+
+    def delete_test_file(self, filename):
+        filepath = "./photos/" + filename
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            return True
+        else:
+            return False
+
     def login_user(self, email):
         rv = self.convert_to_literal(self.server.post('/user/login', headers={'Content-Type': 'application/json'},
                                                       data=json.dumps({'email': '{0}'.format(email),
@@ -94,6 +108,19 @@ class DataTest(unittest.TestCase):
             token_list.append(str(tok))
 
         self.assertEqual(token_list, [token1, token2])
+
+    def test_get_picture(self):
+        self.create_users()
+        user = app.User.query.filter_by(name='user').first()
+        filename = "user_file.utest"
+        self.create_test_file(filename)
+
+        user.picture = filename
+
+        file_content = self.server.get('/user/' + str(user.id) + "/image").data
+
+        self.assertEqual(file_content, b'content\n')
+        self.assertEqual(self.delete_test_file(filename), True)
 
     def test_post_messages(self):
         self.create_users()
