@@ -51,17 +51,13 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     private String password;
     private String passwordRepeat;
     private File imageFile = null;
-    private File destination = null;
-    private String imgPath = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
-    private int i;
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private ImageView profileAvatar;
-    Random r = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -76,7 +72,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                i = r.nextInt();
                 if (imageFile == null) {
                     SubmitData();
                 }
@@ -93,12 +88,13 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
-        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user";
+        String url = "http://looking-for-group-looking-for-group" +
+                ".193b.starter-ca-central-1.openshiftapps.com/user";
         String jsonData = getFormattedDataString();
 
         try {
             //execute the async task
-            postData.execute(url, jsonData, imageFile, "image_" + email + ".jpg");
+            postData.execute(url, jsonData);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,30 +108,16 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user";
 
         if (isValidInput()) {
-            if (imageFile != null) {
-                try {
-                    //execute the async task
-                    postMixedData.execute(
-                            url, "email", email, "name", name, "password", password,
-                            "image", "image_" + name + "_" + i + ".jpg", imageFile
-                    );
+            try {
+                //execute the async task
+                postMixedData.execute(
+                        url, "email", email, "name", name, "password", password,
+                        "image", "image_" + email + ".jpg", imageFile
+                );
                 } catch (Exception e) {
                     e.printStackTrace();
-                }
-            }
-            else {
-                try {
-                    //execute the async task
-                    postMixedData.execute(
-                            url, "email", email, "name", name, "password", password
-                    );
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         }
-
-
     }
 
     @Override
@@ -159,24 +141,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                 selectImage();
             }
         });
-    }
-
-    String mCurrentPhotoPath;
-
-    private File createImageFile() throws IOException { //TODO: Remove this function if SubmitMixedData works.
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
     }
 
     // Select image from camera and gallery
@@ -240,9 +204,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
                 Log.e("Activity", "Pick from Gallery::>>> ");
 
-                imgPath = getRealPathFromURI(selectedImage);
-                destination = new File(imgPath.toString());
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -256,14 +217,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         final int goodWidth = 1500;
         float factor = goodWidth / (float) bitmap.getWidth();
         return Bitmap.createScaledBitmap(bitmap, goodWidth, (int) (bitmap.getHeight() * factor), true);
-    }
-
-    public String getRealPathFromURI(Uri contentUri) {
-        String[] proj = {MediaStore.Audio.Media.DATA};
-        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
     }
 
     private void persistImage(Bitmap bitmap, String name) {
@@ -282,23 +235,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     }
 
     private String getFormattedDataString() { //TODO: Remove this function if SubmitMixedData works.
-        //TODO: Fix image.
-        String contentProfileAvatar = "";
-        /*
-        Bitmap bitmapProfileAvatar = ((BitmapDrawable)profileAvatar.getDrawable()).getBitmap();
-        String contentProfileAvatar;
-        if (bitmapProfileAvatar != null) {
-            final int COMPRESSION_QUALITY = 5;
-            ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-            bitmapProfileAvatar.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
-                    byteArrayBitmapStream);
-            byte[] b = byteArrayBitmapStream.toByteArray();
-            contentProfileAvatar = Base64.encodeToString(b, Base64.DEFAULT);
-        }
-        else {
-            contentProfileAvatar = "";
-        }
-        */
 
         TextView tName = findViewById(R.id.nameRegister);
         String name = tName.getText().toString();
@@ -330,7 +266,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             return "";
         }
 
-         return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\",\"profileAvatar\":\"" + contentProfileAvatar + "\"}";
+         return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\"}";
     }
 
     private boolean isEmailValid(String email) {

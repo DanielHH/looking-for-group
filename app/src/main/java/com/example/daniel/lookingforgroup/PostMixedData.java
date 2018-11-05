@@ -25,7 +25,8 @@ public class PostMixedData extends AsyncTask<Object, Void, String> {
 
     @Override
     protected String doInBackground(Object... params) {
-        Headers JSON_HEADER = new Headers.Builder().add("Content-Type", "application/json").build();
+        Headers JSON_HEADER = new Headers.Builder()
+                .add("Content-Type", "application/json").build();
         String result = "";
         String token = "";
         if (sp.contains("token")) {

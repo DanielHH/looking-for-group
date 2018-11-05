@@ -21,7 +21,6 @@ public class PostData extends AsyncTask<Object, Void, String> {
     OkSingleton client = OkSingleton.getInstance();
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-    public static final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
 
     @Override
     protected String doInBackground(Object... params) {
