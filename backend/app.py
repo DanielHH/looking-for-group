@@ -228,7 +228,10 @@ def create_user():
             image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
             print(url_for('uploaded_file', filename=filename))
 
-        data = json.loads(request.get_data())
+        try:
+            data = json.loads(request.get_data())
+        except json.decoder.JSONDecodeError:
+            data = request.form
 
         if app.config['TESTING']:
             print(data)
