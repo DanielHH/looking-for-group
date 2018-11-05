@@ -38,6 +38,7 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
 
     TextView name;
     ImageView profilePicture;
+    String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +46,8 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
         setContentView(R.layout.activity_user_page);
         name = findViewById(R.id.profileName);
         profilePicture = findViewById(R.id.profilePicture);
-        String userId = getIntent().getStringExtra("EXTRA_USER_ID");
+        userId = getIntent().getStringExtra("EXTRA_USER_ID");
         getUserData(userId);
-        getImageData(userId);
         ImageView profilePic = (ImageView)findViewById(R.id.profilePicture);
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -172,6 +172,7 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        getImageData(userId);
     }
 
     public void getImageData(String userId) {
