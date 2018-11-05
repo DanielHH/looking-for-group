@@ -1,11 +1,12 @@
 import os
 import binascii
 import datetime
-from flask import Flask, request, json, jsonify, abort, g, flash
+from flask import Flask, request, json, jsonify, abort, g, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug import SharedDataMiddleware
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
@@ -18,8 +19,6 @@ else:
 db = SQLAlchemy(app)
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
-
-DEBUG = True
 
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
@@ -41,7 +40,11 @@ follow_table = db.Table('follow', db.metadata,
                            db.Column('followed_id', db.Integer, db.ForeignKey('user.id'), primary_key=True))
 
 ''' DOING SOME UPLOAD MAGIC '''
-app.config["UPLOAD_FOLDER"] = "/photos"
+app.config["UPLOAD_FOLDER"] = "./photos"
+app.add_url_rule('/photos/<filename>', 'uploaded_file', build_only=True)
+app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
+    './photos': app.config['UPLOAD_FOLDER']
+})
 
 
 class Token(db.Model):
@@ -211,7 +214,7 @@ def index():
 @app.route("/user", methods=["POST"])
 def create_user():
     if request.method == "POST":
-        if DEBUG:
+        if app.config['TESTING']:
             print(request.get_data())
 
         image = None
@@ -221,12 +224,14 @@ def create_user():
             image = request.files['image']
 
         if image and image.filename != '':
-            filename = image.filename
+            filename = secure_filename(image.filename)
             image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            print(url_for('uploaded_file', filename=filename))
 
         data = json.loads(request.get_data())
 
-        if DEBUG:
+        if app.config['TESTING']:
+            print(data)
             print("email: " + data.get('email'))
             print("name: " + data.get('name'))
             print("password: " + data.get('password'))
@@ -244,7 +249,7 @@ def create_user():
         db.session.add(user)
         db.session.commit()
 
-        if DEBUG:
+        if app.config['TESTING']:
             print("uid: " + str(user.id))
             print("email: " + user.email)
             print("name: " + user.name)
@@ -272,7 +277,7 @@ def login_user():
     if request.method == "POST":
         data = request.get_json()
 
-        if DEBUG:
+        if app.config['TESTING']:
             print("json: " + json.dumps(data))
 
         email = data['email']
@@ -286,7 +291,7 @@ def login_user():
             token = user.generate_auth_token()
             user_id = user.id
 
-            if DEBUG:
+            if app.config['TESTING']:
                 print("user: " + user.email)
                 print("token: " + token)
 
@@ -556,7 +561,8 @@ def upload_image(user_email):
 def get_matches():
     matches = Match.query.all()
     if not matches:
-        return abort(400)
+        # TODO: Have frontend show a 'no games' window?
+        return 'HTTP 200', 200
 
     if request.method == "GET":
         match_list = []
@@ -572,7 +578,7 @@ def get_matches():
                                'cur_players': cur_players, 'max_players': max_players,
                                'match_id': match_id})
 
-            if DEBUG:
+            if app.config['TESTING']:
                 print("location: " + location)
                 print("created_date: " + str(created_date))
                 print("cur_players: " + str(cur_players))
@@ -734,7 +740,7 @@ def post_dummy_data():
 
     db.session.commit()
 
-    if DEBUG:
+    if app.config['TESTING']:
         print(Match.query.all())
 
     return "HTTP 200", 200

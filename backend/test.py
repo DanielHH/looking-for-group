@@ -3,6 +3,8 @@ import app
 import ast
 import json
 import time
+from io import StringIO
+
 
 class DataTest(unittest.TestCase):
     def setUp(self):
@@ -40,7 +42,7 @@ class DataTest(unittest.TestCase):
 
     def join_match(self, token):
         rv = self.server.post('/matches/1/join', headers={'Content-Type': 'application/json', 'Authorization': token},
-                         data=json.dumps({}))
+                              data=json.dumps({}))
         return rv
 
     def convert_to_literal(self, rv):
