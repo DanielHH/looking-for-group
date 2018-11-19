@@ -214,7 +214,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     }
 
     private Bitmap bitmapScaler(Bitmap bitmap) {
-        final int goodWidth = 1500;
+        final int goodWidth = 500;
         float factor = goodWidth / (float) bitmap.getWidth();
         return Bitmap.createScaledBitmap(bitmap, goodWidth, (int) (bitmap.getHeight() * factor), true);
     }
