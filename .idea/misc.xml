@@ -25,11 +25,8 @@
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.6 (looking-for-group)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
   <component name="ProjectType">
     <option name="id" value="Android" />
-  </component>
-  <component name="PyCharmProfessionalAdvertiser">
-    <option name="shown" value="true" />
   </component>
 </project>
