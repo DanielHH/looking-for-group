@@ -265,7 +265,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             Toast.makeText(this, "Passwords do not match!", Toast.LENGTH_SHORT).show();
             return "";
         }
-
          return "{\"email\":\"" + email + "\",\"name\":\"" + name + "\",\"password\":\"" + password + "\"}";
     }
 
