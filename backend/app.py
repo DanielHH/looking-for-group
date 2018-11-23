@@ -429,7 +429,7 @@ def logout_user():
         token_value = headers["Authorization"]
         token = Token.query.get(token_value)
 
-        if token_value == token.token:
+        if token and token_value == token.token:
             # user_logout_message = "{0} is now logged out on this device".format(str(g.user))
             g.user.tokens.remove(token)
             db.session.delete(token)
