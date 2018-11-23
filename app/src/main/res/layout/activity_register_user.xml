@@ -45,7 +45,7 @@
     <EditText
         android:id="@+id/passwordRepeatRegister"
         android:layout_width="wrap_content"
-        android:layout_height="42dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="@string/password_repeat_register"
@@ -67,8 +67,8 @@
 
     <TextView
         android:id="@+id/titleRegister"
-        android:layout_width="222dp"
-        android:layout_height="54dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="@string/headline_register_user"
         android:textAlignment="center"
@@ -76,14 +76,14 @@
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- TODO: Fix good dimensions on imageview -->
     <ImageView
         android:id="@+id/imageViewProfileAvatar"
-        android:layout_width="149dp"
-        android:layout_height="104dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -4,11 +4,16 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,9 +22,15 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
-public class EditProfileActivity extends AppCompatActivity implements AsyncResponse {
 
+public class EditProfileActivity extends AppCompatActivity implements AsyncResponse, AsyncImageResponse {
+    private Bitmap bitmap;
+    private File imageFile = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
@@ -27,6 +38,7 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
 
     TextView name;
     ImageView profilePicture;
+    String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,18 +46,19 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
         setContentView(R.layout.activity_user_page);
         name = findViewById(R.id.profileName);
         profilePicture = findViewById(R.id.profilePicture);
-        String userId = getIntent().getStringExtra("EXTRA_USER_ID");
+        userId = getIntent().getStringExtra("EXTRA_USER_ID");
         getUserData(userId);
         ImageView profilePic = (ImageView)findViewById(R.id.profilePicture);
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editProfilePicture();
+                selectImage();
             }
         });
     }
 
-    public void editProfilePicture() {
+    // Select image from camera and gallery
+    private void selectImage() {
         try {
             if (ContextCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(EditProfileActivity.this,
@@ -90,11 +103,57 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
         }
     }
 
+    // TODO: Rescale images.
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_IMAGE_CAMERA && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            bitmap = (Bitmap) extras.get("data");
+        }
+        else if (requestCode == PICK_IMAGE_GALLERY && resultCode == RESULT_OK) {
+            Uri selectedImage = data.getData();
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                Log.e("Activity", "Pick from Gallery::>>> ");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        Bitmap finalBitmap = bitmapScaler(bitmap);
+        profilePicture.setImageBitmap(finalBitmap);
+        persistImage(finalBitmap, "profilePic");
+    }
+
+    private Bitmap bitmapScaler(Bitmap bitmap) {
+        final int goodWidth = 1500;
+        float factor = goodWidth / (float) bitmap.getWidth();
+        return Bitmap.createScaledBitmap(bitmap, goodWidth, (int) (bitmap.getHeight() * factor), true);
+    }
+
+    private void persistImage(Bitmap bitmap, String name) {
+        File filesDir = getApplicationContext().getFilesDir();
+        imageFile = new File(filesDir, name + ".jpg");
+
+        OutputStream os;
+        try {
+            os = new FileOutputStream(imageFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+        }
+    }
+
     public void getUserData(String userId) {
         GetData getData = new GetData();
         getData.delegate = this;
 
-        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user/" + userId;
+        String url = "http://looking-for-group-looking-for-group" +
+                ".193b.starter-ca-central-1.openshiftapps.com/user/" + userId;
         try {//execute the async task
             getData.execute(url);
         } catch (Exception e) {
@@ -113,5 +172,30 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        getImageData(userId);
     }
+
+    public void getImageData(String userId) {
+        GetImageData getImageData = new GetImageData();
+        getImageData.delegate = this;
+
+        String url = "http://looking-for-group-looking-for-group" +
+                ".193b.starter-ca-central-1.openshiftapps.com/user/" + userId + "/image";
+        try {//execute the async task
+            getImageData.execute(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void processFinish(Bitmap response) {
+        try {
+            this.profilePicture.setImageBitmap(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
