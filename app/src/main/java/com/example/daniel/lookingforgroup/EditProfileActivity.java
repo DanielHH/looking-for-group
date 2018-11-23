@@ -4,9 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -44,11 +42,12 @@ public class EditProfileActivity extends AppCompatActivity implements AsyncRespo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_page);
-        name = findViewById(R.id.profileName);
-        profilePicture = findViewById(R.id.profilePicture);
+        name = findViewById(R.id.text_profile_name);
+        profilePicture = findViewById(R.id.image_profile_picture);
         userId = getIntent().getStringExtra("EXTRA_USER_ID");
         getUserData(userId);
-        ImageView profilePic = (ImageView)findViewById(R.id.profilePicture);
+        ImageView profilePic = (ImageView)findViewById(R.id.image_profile_picture);
+        //TODO: Set an if-case here which checks whether this is my profile or someone else's.
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -55,7 +55,7 @@ public class CreateGameActivity extends AppCompatActivity {
         String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
 
         // Capture the layout's TextView and set the string as its text
-        TextView gameName = findViewById(R.id.gameName);
+        TextView gameName = findViewById(R.id.text_game_name);
         gameName.setText(message);
 
         addListenerOnButton();
@@ -85,7 +85,7 @@ public class CreateGameActivity extends AppCompatActivity {
     }
 
     public void addListenerOnButton() {
-        gameAvatar = findViewById(R.id.imageViewGameAvatar);
+        gameAvatar = findViewById(R.id.image_game_avatar);
         gameAvatar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -185,10 +185,10 @@ public class CreateGameActivity extends AppCompatActivity {
         byte[] b = byteArrayBitmapStream.toByteArray();
         contentGameAvatar = Base64.encodeToString(b, Base64.DEFAULT);
 
-        TextView gameName = findViewById(R.id.gameName);
+        TextView gameName = findViewById(R.id.text_game_name);
         String contentGameName = gameName.getText().toString();
 
-        EditText Description = findViewById(R.id.editTextDescription);
+        EditText Description = findViewById(R.id.edit_description);
         String contentDescription = Description.getText().toString();
 
         //TODO: Send bitmapGameAvatar, contentGameName & contentDescription to database.

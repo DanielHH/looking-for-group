@@ -19,8 +19,8 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_page);
-        name = findViewById(R.id.profileName);
-        profilePicture = findViewById(R.id.profilePicture);
+        name = findViewById(R.id.text_profile_name);
+        profilePicture = findViewById(R.id.image_profile_picture);
         String userId = getIntent().getStringExtra("EXTRA_USER_ID");
         getUserData(userId);
     }
