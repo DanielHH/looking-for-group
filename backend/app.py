@@ -1,11 +1,12 @@
 import os
 import binascii
 import datetime
-from flask import Flask, request, json, jsonify, abort, g, flash
+from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug import SharedDataMiddleware
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
@@ -18,8 +19,6 @@ else:
 db = SQLAlchemy(app)
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
-
-DEBUG = True
 
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
@@ -39,6 +38,14 @@ matches_table = db.Table('matches_table', db.metadata,
 follow_table = db.Table('follow', db.metadata,
                            db.Column('follower_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                            db.Column('followed_id', db.Integer, db.ForeignKey('user.id'), primary_key=True))
+
+''' DOING SOME UPLOAD MAGIC '''
+app.config["UPLOAD_FOLDER"] = "./photos"
+app.add_url_rule('/photos/<filename>', 'uploaded_file', build_only=True)
+
+app.wsgi_app = SharedDataMiddleware(app.wsgi_app, {
+    'opt/app-root/src/photos': app.config['UPLOAD_FOLDER']
+})
 
 
 class Token(db.Model):
@@ -60,7 +67,7 @@ class User(db.Model):
     email = db.Column(db.String(127), unique=True, nullable=False)
     name = db.Column(db.String, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    picture = db.Column(db.LargeBinary, nullable=True)
+    picture = db.Column(db.String, nullable=True)
 
     tokens = db.relationship('Token')
     read = db.relationship('Message',
@@ -70,10 +77,11 @@ class User(db.Model):
                              secondary=matches_table,
                              back_populates='played_by')
 
-    def __init__(self, email, name, password):
+    def __init__(self, email, name, password, image_name=''):
         self.email = email
         self.name = name
         self.password = generate_password_hash(password)
+        self.picture = image_name
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
@@ -102,6 +110,7 @@ class Message(db.Model):
     __tablename__ = 'message'
     id = db.Column(db.String(24), primary_key=True)
     message = db.Column(db.String(140), unique=False, nullable=False)
+    author_id = db.Column(db.Integer, unique=False, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
 
     posted_on = db.relationship('Match',
@@ -111,14 +120,14 @@ class Message(db.Model):
                               secondary=read_by_table,
                               back_populates='read')
 
-    def __init__(self, message, author_id, message_id, match_id=None):
+    def __init__(self, message, author_id, message_id, match=None):
         self.message = message
         self.id = message_id
         self.author_id = author_id
         self.date = datetime.datetime.now()
 
-        if match_id:
-            self.posted_on.append(match_id)
+        if match:
+            self.posted_on.append(match)
             #  Posts message as a comment on the match indicated by match_id
 
     def __repr__(self):
@@ -190,7 +199,7 @@ def verify_auth_token(token):
         return None
     except BadSignature:
         return None
-    user = User.query.filter_by(id=data).first()
+    user = User.query.get(data)
     return user
 
 
@@ -206,25 +215,46 @@ def index():
 @app.route("/user", methods=["POST"])
 def create_user():
     if request.method == "POST":
-        data = request.get_json()
+        if app.config['TESTING']:
+            print(request.get_data())
 
-        if DEBUG:
-            print("json: " + json.dumps(data))
+        image = None
+        filename = None
+
+        if 'image' in request.files:
+            image = request.files['image']
+
+        if image and image.filename != '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            print(url_for('uploaded_file', filename=filename))
+
+        try:
+            data = json.loads(request.get_data())
+        except Exception:
+            # Cannot find json.decoder for JSONDecodeError
+            data = request.form
+
+        if app.config['TESTING']:
+            print(data)
+            print("email: " + data.get('email'))
+            print("name: " + data.get('name'))
+            print("password: " + data.get('password'))
 
         email = data['email']
 
         if User.query.filter_by(email=email).first():
             abort(403)
-            #  403 error means user already exists. Should be handled in frontend.
+            # 403 error means user already exists. Should be handled in frontend.
 
         name = data['name']
         password = data['password']
 
-        user = User(email, name, password)
+        user = User(email, name, password, filename)
         db.session.add(user)
         db.session.commit()
 
-        if DEBUG:
+        if app.config['TESTING']:
             print("uid: " + str(user.id))
             print("email: " + user.email)
             print("name: " + user.name)
@@ -236,12 +266,23 @@ def create_user():
         return abort(405)
 
 
+@app.route("/user/verify", methods=["POST", "GET"])
+@verify_login
+def verify_user():
+    if g.user is None:
+        return abort(401)
+    elif request.method in ["POST", "GET"]:
+        return "HTTP 200", 200
+    else:
+        return abort(405)
+
+
 @app.route("/user/login", methods=["POST"])
 def login_user():
     if request.method == "POST":
         data = request.get_json()
 
-        if DEBUG:
+        if app.config['TESTING']:
             print("json: " + json.dumps(data))
 
         email = data['email']
@@ -255,7 +296,7 @@ def login_user():
             token = user.generate_auth_token()
             user_id = user.id
 
-            if DEBUG:
+            if app.config['TESTING']:
                 print("user: " + user.email)
                 print("token: " + token)
 
@@ -263,6 +304,52 @@ def login_user():
 
         else:
             return "email or password incorrect", 400
+
+    else:
+        return abort(405)
+
+
+@app.route("/user/<user_id>/image", methods=["GET"])
+def get_profile_picture(user_id):
+    if request.method == "GET":
+        user = User.query.get(user_id)
+
+        if user and user.picture:
+            file = "." + url_for('uploaded_file', filename=user.picture)
+            # This works since url_for requires a relative path
+            return send_file(file)
+
+        else:
+            return abort(403)
+            # The requested user does not exist, or the picture has not been uploaded
+
+    else:
+        return abort(405)
+
+
+@app.route("/images/<user_id>", methods=["POST"])
+@verify_login
+def post_profile_picture(user_id):
+    if g.user is None or g.user.id != user_id:
+        return abort(401)
+
+    elif request.method == "POST":
+        if 'image' not in request.files:
+            flash('No file part')
+            return abort(400)
+        image = request.files['image']
+
+        if image and image.filename != '':
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+            if app.config['TESTING']:
+                print(url_for('uploaded_file', filename=filename))
+
+            g.user.set_picture(filename)
+            db.session.commit()
+
+            return "HTTP 200", 200
 
     else:
         return abort(405)
@@ -362,7 +449,7 @@ def get_message(message_id):
         return abort(400)
 
     elif request.method == "GET":
-        message = Message.query.filter_by(id=message_id).first()
+        message = Message.query.get(message_id)
         # message is type Message
         if message:
             read_by = []
@@ -384,7 +471,7 @@ def delete_message(message_id):
     messages = Message.query.all()
     if not messages:
         return abort(400)
-    message = Message.query.filter_by(id=message_id).first()
+    message = Message.query.get(message_id)
     if not message:
         return abort(400)
 
@@ -455,7 +542,7 @@ def flag_as_read(message_id):
         return abort(400)
 
     elif request.method == "POST":
-        message = Message.query.filter_by(id=message_id).first()
+        message = Message.query.get(message_id)
         if message:
             user = User.query.filter_by(email=g.user.email).first()
             if user not in message.read_by:
@@ -494,38 +581,12 @@ def read_unread_messages():
         return abort(405)
 
 
-@app.route("/images/<user_email>", methods=["POST"])
-@verify_login
-def upload_image(user_email):
-    if g.user is None or g.user.email != user_email:
-        return abort(401)
-
-    elif request.method == "POST":
-        if 'file' not in request.files:
-            flash('No file part')
-            return abort(400)
-        file = request.files['file']
-
-        if file.filename == '':
-            flash("No selected file")
-            return abort(400)
-
-        if file and allowed_file(file.filename):
-            user = User.query.filter_by(email=user_email).first()
-            user.set_picture(secure_filename(file.filename))
-            db.session.commit()
-
-            return "HTTP 200", 200
-
-    else:
-        return abort(405)
-
-
 @app.route("/matches", methods=["GET"])
 def get_matches():
     matches = Match.query.all()
     if not matches:
-        return abort(400)
+        # TODO: Have frontend show a 'no games' window?
+        return 'HTTP 200', 200
 
     if request.method == "GET":
         match_list = []
@@ -541,7 +602,7 @@ def get_matches():
                                'cur_players': cur_players, 'max_players': max_players,
                                'match_id': match_id})
 
-            if DEBUG:
+            if app.config['TESTING']:
                 print("location: " + location)
                 print("created_date: " + str(created_date))
                 print("cur_players: " + str(cur_players))
@@ -586,7 +647,7 @@ def get_match(match_id):
     if not matches:
         return abort(400)
 
-    match = Match.query.filter_by(id=match_id).first()
+    match = Match.query.get(match_id)
     if not match:
         return abort(400)
 
@@ -640,8 +701,9 @@ def post_comment(match_id):
     if g.user is None:
         return abort(401)
 
-    match = Match.query.filter_by(id=match_id).first()
+    match = Match.query.get(match_id)
     if not match:
+        print("match id NOT located in database")
         return abort(400)
 
     if request.method == "POST":
@@ -651,7 +713,7 @@ def post_comment(match_id):
         # [2:-1] removes extra symbols added by binascii
         # TODO: control for duplicate message ids
         message_id = str(binascii.b2a_hex(os.urandom(12)))[2:-1]
-        db.session.add(Message(comment, g.user.id, message_id, match_id))
+        db.session.add(Message(comment, g.user.id, message_id, match))
         db.session.commit()
 
         return "HTTP 200", 200
@@ -669,6 +731,7 @@ def join_match(match_id):
     if request.method in ["GET", "POST"]:
         match = Match.query.get(match_id)
         if g.user not in match.played_by:
+            # TODO: update match.cur_players
             match.played_by.append(g.user)
         else:
             match.played_by.remove(g.user)
@@ -700,6 +763,10 @@ def post_dummy_data():
     db.session.add(Match(2, "C-huset", user_uid))
 
     db.session.commit()
+
+    if app.config['TESTING']:
+        print(Match.query.all())
+
     return "HTTP 200", 200
 
 
