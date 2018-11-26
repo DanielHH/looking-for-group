@@ -269,9 +269,7 @@ def create_user():
 @app.route("/user/verify", methods=["POST", "GET"])
 @verify_login
 def verify_user():
-    if g.user is None:
-        return abort(401)
-    elif request.method in ["POST", "GET"]:
+    if request.method in ["POST", "GET"]:
         return "HTTP 200", 200
     else:
         return abort(405)
@@ -403,8 +401,6 @@ def view_profile(user_id):
 @verify_login
 def follow_user(follow_id):
     # TODO: This needs testing
-    if g.user is None:
-        return abort(401)
 
     if request.method in ["POST", "GET"]:
         if g.user.id not in User.query.filter(User.follows.any(id=follow_id)).all():
@@ -422,10 +418,7 @@ def follow_user(follow_id):
 @app.route("/user/logout", methods=["POST"])
 @verify_login
 def logout_user():
-    if g.user is None:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         headers = request.headers
         token_value = headers["Authorization"]
         token = Token.query.get(token_value)
@@ -513,10 +506,7 @@ def get_messages():
 @app.route("/messages", methods=["POST"])
 @verify_login
 def post_message():
-    if g.user is None:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         message = request.get_json()
         if len(message) > 140:
             return abort(400)
@@ -535,8 +525,6 @@ def post_message():
 @verify_login
 def flag_as_read(message_id):
     # TODO: change validation to token
-    if g.user is None:
-        return abort(401)
 
     messages = Message.query.all()
     if not messages:
@@ -562,10 +550,7 @@ def flag_as_read(message_id):
 @app.route("/messages/unread", methods=["GET"])
 @verify_login
 def read_unread_messages():
-    if g.user is None:
-        return abort(401)
-
-    elif request.method == "GET":
+    if request.method == "GET":
         unread_messages = []
         messages = Message.query.all()
         for message in messages:
@@ -619,9 +604,6 @@ def get_matches():
 @app.route("/matches", methods=["POST"])
 @verify_login
 def post_match():
-    if g.user is None:
-        return abort(401)
-
     if request.method == "POST":
         data = request.get_json()
 
@@ -699,9 +681,6 @@ def get_match_data(match):
 @app.route("/matches/<match_id>", methods=["POST"])
 @verify_login
 def post_comment(match_id):
-    if g.user is None:
-        return abort(401)
-
     match = Match.query.get(match_id)
     if not match:
         print("match id NOT located in database")
@@ -726,9 +705,6 @@ def post_comment(match_id):
 @app.route("/matches/<match_id>/join", methods=["GET", "POST"])
 @verify_login
 def join_match(match_id):
-    if g.user is None:
-        return abort(401)
-
     if request.method in ["GET", "POST"]:
         match = Match.query.get(match_id)
         if g.user not in match.played_by:
