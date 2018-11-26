@@ -11,12 +11,20 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.daniel.lookingforgroup.matches.LobbyActivity;
+import com.example.daniel.lookingforgroup.matches.Match;
+import com.example.daniel.lookingforgroup.matches.MatchesAdapter;
+import com.example.daniel.lookingforgroup.matches.OpenGamesActivity;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 
 public class UserPageActivity extends AppCompatActivity implements AsyncResponse, AsyncImageResponse {
@@ -38,17 +47,28 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     ImageView profilePicture;
     String userId;
 
+    ArrayList<Match> matches;
+
+    RecyclerView rvMatches;
+    MatchesAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_page);
+
         name = findViewById(R.id.text_profile_name);
         profilePicture = findViewById(R.id.image_profile_picture);
         userId = getIntent().getStringExtra("EXTRA_USER_ID");
+        rvMatches = (RecyclerView) findViewById(R.id.my_matches_view);
+
         getUserData(userId);
-        ImageView profilePic = (ImageView)findViewById(R.id.image_profile_picture);
+
+        rvMatches.setHasFixedSize(true);
+        rvMatches.setLayoutManager(new LinearLayoutManager(this));
+
         //TODO: Set an if-case here which checks whether this is my profile or someone else's.
-        profilePic.setOnClickListener(new View.OnClickListener() {
+        profilePicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 selectImage();
@@ -150,7 +170,6 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     public void getUserData(String userId) {
         GetData getData = new GetData();
         getData.delegate = this;
-
         String url = "http://looking-for-group-looking-for-group" +
                 ".193b.starter-ca-central-1.openshiftapps.com/user/" + userId;
         try {//execute the async task
@@ -164,15 +183,38 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     public void processFinish(String response) {
         //Handle the response.
         System.out.println(response);
+
+        String name;
+        JSONObject userData;
+        JSONArray matchesArray;
+
+
         try {
-            JSONObject userData = new JSONObject(response);
-            String name = userData.getString("name");
+            userData = new JSONObject(response);
+            name = userData.getString("name");
+            matchesArray = userData.getJSONArray("matches_played");
+            matches = Match.createMatchList(matchesArray);
+            adapter = new MatchesAdapter(matches, new MatchesAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(Match match) {
+                    navigateToMatch(match);
+                }
+            });
             this.name.setText(name);
+            this.rvMatches.setAdapter(adapter);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
         getImageData(userId);
     }
+
+    private void navigateToMatch(Match match) {
+        Intent intent = new Intent(this, LobbyActivity.class);
+        intent.putExtra("match", match);
+        startActivity(intent);
+    }
+
 
     public void getImageData(String userId) {
         GetImageData getImageData = new GetImageData();
