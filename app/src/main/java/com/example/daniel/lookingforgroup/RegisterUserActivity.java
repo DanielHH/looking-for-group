@@ -57,17 +57,17 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             @Override
             public void onClick(View view) {
                 if (imageFile == null) {
-                    SubmitData();
+                    submitData();
                 }
                 else {
-                    SubmitMixedData();
+                    submitMixedData();
                 }
 
             }
         });
     }
 
-    private void SubmitData() { //TODO: Remove this function if SubmitMixedData works.
+    private void submitData() { //TODO: Remove this function if SubmitMixedData works.
         PostData postData = new PostData();
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
@@ -84,7 +84,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         }
     }
 
-    private void SubmitMixedData() {
+    private void submitMixedData() {
         PostMixedData postMixedData = new PostMixedData();
         postMixedData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);

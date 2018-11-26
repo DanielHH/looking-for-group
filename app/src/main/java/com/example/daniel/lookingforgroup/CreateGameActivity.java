@@ -3,6 +3,7 @@ package com.example.daniel.lookingforgroup;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -17,6 +18,7 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,7 +32,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class CreateGameActivity extends AppCompatActivity {
+public class CreateGameActivity extends AppCompatActivity implements AsyncResponse {
 
     private Bitmap bitmap;
     private File destination = null;
@@ -40,9 +42,10 @@ public class CreateGameActivity extends AppCompatActivity {
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
 
-    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
     ImageView gameAvatar;
+    String gameName;
+    String description;
+    Integer maxPlayers;
 
 
     @Override
@@ -59,29 +62,14 @@ public class CreateGameActivity extends AppCompatActivity {
         gameName.setText(message);
 
         addListenerOnButton();
-    }
 
-    OkHttpClient client = new OkHttpClient();
-    private class SubmitGameData extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            String result = "";
-            RequestBody body = RequestBody.create(JSON, params[1]);
-            Request request = new Request.Builder()
-                    .url(params[0])
-                    .post(body)
-                    .build();
-            try (Response response = client.newCall(request).execute()) {
-                result = response.body().string();
-            } catch (Exception e) {
-                e.printStackTrace();
+        Button buttonSave = findViewById(R.id.btn_save);
+        buttonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                submitData();
             }
-            return result;
-        }
-
-        protected void onPostExecute(String result) {
-            System.out.println("!!!!!!!!!!!!!!!! " + result + "!!!!!!!!!!!!!!");
-        }
+        });
     }
 
     public void addListenerOnButton() {
@@ -174,35 +162,43 @@ public class CreateGameActivity extends AppCompatActivity {
     }
 
     //get gameAvatar, get textDescription, get gameName. Send to database.
-    public void saveNewGame (View view) {
-        Bitmap bitmapGameAvatar = ((BitmapDrawable)gameAvatar.getDrawable()).getBitmap();
+    public String getFormattedDataString () {
 
-        final int COMPRESSION_QUALITY = 100;
-        String contentGameAvatar;
-        ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-        bitmapGameAvatar.compress(Bitmap.CompressFormat.PNG, COMPRESSION_QUALITY,
-                byteArrayBitmapStream);
-        byte[] b = byteArrayBitmapStream.toByteArray();
-        contentGameAvatar = Base64.encodeToString(b, Base64.DEFAULT);
+        TextView textGameName = findViewById(R.id.text_game_name);
+        this.gameName = textGameName.getText().toString();
 
-        TextView gameName = findViewById(R.id.text_game_name);
-        String contentGameName = gameName.getText().toString();
+        EditText editDescription = findViewById(R.id.edit_description);
+        this.description = editDescription.getText().toString();
 
-        EditText Description = findViewById(R.id.edit_description);
-        String contentDescription = Description.getText().toString();
+        this.maxPlayers = 5; //TODO: ADD 4 REAL. This is just a test.
 
-        //TODO: Send bitmapGameAvatar, contentGameName & contentDescription to database.
-        submitData(contentGameAvatar, contentGameName, contentDescription);
+        return "{\"game_name\":\"" + gameName + "\",\"location\":\""
+                + description + "\",\"max_players\":\"" + maxPlayers + "\"}";
     }
 
-    private void submitData (String avatar, String gameName, String description) {
-        String json = "'gameAvatar':'" + avatar + "','gameName':'" + gameName + "','description':'" + description + "'";
+    private void submitData () {
+        PostData postData = new PostData();
+        postData.delegate = this;
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        postData.setSP(sp);
+        String url = "http://looking-for-group-looking-for-group" +
+                ".193b.starter-ca-central-1.openshiftapps.com/matches";
+        String jsonData = getFormattedDataString();
         try {
-            new SubmitGameData().execute("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches", json);
+            postData.execute(url, jsonData);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
+    @Override
+    public void processFinish(String response) {
+        if(response.equals("HTTP 200")) {
+            Toast.makeText(this, "Added game successfully", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(this, "This did not go well!", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
