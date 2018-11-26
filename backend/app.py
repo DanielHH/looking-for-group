@@ -330,16 +330,17 @@ def get_profile_picture(user_id):
 @app.route("/images/<user_id>", methods=["POST"])
 @verify_login
 def post_profile_picture(user_id):
-    if g.user is None or g.user.id != user_id:
+    if str(g.user.id) != user_id:
         return abort(401)
 
     elif request.method == "POST":
         if 'image' not in request.files:
             flash('No file part')
             return abort(400)
+
         image = request.files['image']
 
-        if image and image.filename != '':
+        if image and image.filename:
             filename = secure_filename(image.filename)
             image.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
