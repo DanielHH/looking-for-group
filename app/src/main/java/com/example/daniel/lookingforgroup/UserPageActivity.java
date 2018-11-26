@@ -3,6 +3,7 @@ package com.example.daniel.lookingforgroup;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -46,6 +47,8 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     TextView name;
     ImageView profilePicture;
     String userId;
+
+    String email;
 
     ArrayList<Match> matches;
 
@@ -144,10 +147,29 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         Bitmap finalBitmap = bitmapScaler(bitmap);
         profilePicture.setImageBitmap(finalBitmap);
         persistImage(finalBitmap, "profilePic");
+
+        SubmitNewImage();
+    }
+
+    private void SubmitNewImage() {
+        PostMixedData postMixedData = new PostMixedData();
+        postMixedData.delegate = this;
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        postMixedData.setSP(sp);
+        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/images/" + userId;
+
+            try {
+                //execute the async task
+                postMixedData.execute(
+                        url, "image", "image_" + email + ".jpg", imageFile
+                );
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     private Bitmap bitmapScaler(Bitmap bitmap) {
-        final int goodWidth = 1500;
+        final int goodWidth = 500;
         float factor = goodWidth / (float) bitmap.getWidth();
         return Bitmap.createScaledBitmap(bitmap, goodWidth, (int) (bitmap.getHeight() * factor), true);
     }
@@ -188,25 +210,30 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         JSONObject userData;
         JSONArray matchesArray;
 
-
-        try {
-            userData = new JSONObject(response);
-            name = userData.getString("name");
-            matchesArray = userData.getJSONArray("matches_played");
-            matches = Match.createMatchList(matchesArray);
-            adapter = new MatchesAdapter(matches, new MatchesAdapter.OnItemClickListener() {
-                @Override
-                public void onItemClick(Match match) {
-                    navigateToMatch(match);
-                }
-            });
-            this.name.setText(name);
-            this.rvMatches.setAdapter(adapter);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if(response.equals("HTTP 200")) {
+            Toast.makeText(this, "Successful image change", Toast.LENGTH_SHORT).show();
         }
-        getImageData(userId);
+        else {
+            try {
+                userData = new JSONObject(response);
+                name = userData.getString("name");
+                email = userData.getString("email");
+                matchesArray = userData.getJSONArray("matches_played");
+                matches = Match.createMatchList(matchesArray);
+                adapter = new MatchesAdapter(matches, new MatchesAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(Match match) {
+                        navigateToMatch(match);
+                    }
+                });
+                this.name.setText(name);
+                this.rvMatches.setAdapter(adapter);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            getImageData(userId);
+        }
     }
 
     private void navigateToMatch(Match match) {
