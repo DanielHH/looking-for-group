@@ -56,10 +56,10 @@ public class Match implements Parcelable {
     }
 
     private Match(JSONObject matchData) {
-        this.gameName = "dummy";
 
         try {
             this.matchId = (Integer) matchData.get("match_id");
+            this.gameName = (String) matchData.get("title");
             this.location = (String) matchData.get("location");
             this.maxPlayers = (Integer) matchData.get("max_players");
             this.curPlayers = (Integer) matchData.get("cur_players");
