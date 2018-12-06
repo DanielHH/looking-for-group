@@ -21,7 +21,7 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Button buttonLogin = (Button) findViewById(R.id.buttonLogin);
+        Button buttonLogin = (Button) findViewById(R.id.btn_login);
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -65,14 +65,14 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
     }
 
     private String getFormattedDataString() {
-        TextView tEmail = findViewById(R.id.emailLogin);
+        TextView tEmail = findViewById(R.id.edit_email_login);
         String email = tEmail.getText().toString();
         if (!isEmailValid(email)) {
             Toast.makeText(this, "Not a valid email", Toast.LENGTH_SHORT).show();
             return "";
         }
 
-        TextView tPassword = findViewById(R.id.passwordLogin);
+        TextView tPassword = findViewById(R.id.edit_password_login);
         String password = tPassword.getText().toString();
 
         return "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
