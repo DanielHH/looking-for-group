@@ -664,6 +664,7 @@ def get_match(match_id):
 
 def get_match_data(match):
     match_data = {'location': match.name_location,
+                  'title': match.title,
                   'created_date': match.created_date,
                   'cur_players': match.cur_players,
                   'max_players': match.max_players,
@@ -781,7 +782,6 @@ def parameter_error(err):
 
 
 @app.errorhandler(401)
-
 def unauthorized(err):
     return 'HTTP 401: ' + str(err), 401
 
