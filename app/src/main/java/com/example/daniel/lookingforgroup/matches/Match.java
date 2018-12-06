@@ -15,7 +15,7 @@ public class Match implements Parcelable {
     private String location;
     private int maxPlayers;
     private int curPlayers;
-    private Date createdDate;
+    private String createdDate;
     private int matchId;
 
     /* Parcelable implementation for passing between activities */
@@ -27,12 +27,12 @@ public class Match implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(matchId);
         parcel.writeString(gameName);
         parcel.writeString(location);
         parcel.writeInt(maxPlayers);
         parcel.writeInt(curPlayers);
         parcel.writeValue(createdDate);
-        parcel.writeInt(matchId); // Strange behavior when writing to parcel
     }
 
     public static final Parcelable.Creator<Match> CREATOR
@@ -47,23 +47,23 @@ public class Match implements Parcelable {
     };
 
     private Match(Parcel parcel) {
+        matchId = parcel.readInt();
         gameName = parcel.readString();
         location = parcel.readString();
         maxPlayers = parcel.readInt();
         curPlayers = parcel.readInt();
-        createdDate = (Date) parcel.readValue(ClassLoader.getSystemClassLoader());
-        matchId = parcel.readInt();
+        createdDate = parcel.readString();
     }
 
     private Match(JSONObject matchData) {
 
         try {
+            this.matchId = (Integer) matchData.get("match_id");
             this.gameName = (String) matchData.get("title");
             this.location = (String) matchData.get("location");
             this.maxPlayers = (Integer) matchData.get("max_players");
             this.curPlayers = (Integer) matchData.get("cur_players");
-            this.createdDate = (Date) matchData.get("created_date");
-            this.matchId = (Integer) matchData.get("match_id");
+            this.createdDate = (String) matchData.get("created_date");
         } catch (Exception e) {
             System.err.println(e.toString());
         }
@@ -86,6 +86,10 @@ public class Match implements Parcelable {
     }
 
     public int getMatchId() {return matchId;}
+
+    public String getMatchDate() {
+        return createdDate;
+    }
 
     public static ArrayList<Match> createMatchList(JSONArray matches) {
         ArrayList<Match> matchList = new ArrayList<Match>();

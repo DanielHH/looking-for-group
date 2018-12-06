@@ -27,6 +27,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     String title;
     String location;
     int id;
+    String date;
 
     TextView titleView;
     TextView locationView;
@@ -52,10 +53,15 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         maxPlayers = match.getMaxPlayers();
         title = match.getName();
         location = match.getLocation();
+        id = match.getMatchId();
+        date = match.getMatchDate();
 
-        id = match.getMatchId() + 1;
-        // There is a strange error when creating match objects where the id returned by the
-        // response is decremented by one. This is a temporary (permanent) solution.
+        System.out.println("Match id: " + id);
+        System.out.println("Cur players: " + curPlayers);
+        System.out.println("Max players: " + maxPlayers);
+        System.out.println("Title: " + title);
+        System.out.println("Location: " + location);
+        System.out.println("Date: " + date);
 
         joinButton = findViewById(R.id.joinButtonViewGame);
         titleView = findViewById(R.id.titleViewGame);

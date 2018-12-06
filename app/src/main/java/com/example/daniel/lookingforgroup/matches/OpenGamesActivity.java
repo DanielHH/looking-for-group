@@ -48,8 +48,6 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
 
     @Override
     public void processFinish(String response) {
-        System.out.println(response);
-
         JSONArray respArray;
         try {
             respArray = new JSONArray(response);
