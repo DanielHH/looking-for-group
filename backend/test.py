@@ -4,7 +4,7 @@ import ast
 import json
 import time
 import os
-from glob import glob
+import io
 
 
 class DataTest(unittest.TestCase):
@@ -58,6 +58,14 @@ class DataTest(unittest.TestCase):
                          data=json.dumps({'email': 'eriny656@student.liu.se', 'name': 'eriny656', 'password': 'password'}))
         self.server.post('/user', headers={'Content-Type': 'application/json'},
                          data=json.dumps({'email': 'somon123@student.liu.se', 'name': 'somon123', 'password': 'password'}))
+
+    def post_image(self, user_id, token):
+        file = io.BytesIO(b'content\n')
+        self.server.post('/images/' + str(user_id), headers={'Content-Type': 'multipart/form-data',
+                                                             'boundary': '--ArbitraryBoundary--',
+                                                             'Authorization': token},
+                         data=dict(image=(file, 'output_file.jpg'))
+                         )
 
     def create_test_file(self, filename):
         f = open("./photos/" + filename, "w")
@@ -121,6 +129,16 @@ class DataTest(unittest.TestCase):
 
         self.assertEqual(file_content, b'content\n')
         self.assertEqual(self.delete_test_file(filename), True)
+
+    def test_post_picture(self):
+        self.create_users()
+        user = app.User.query.filter_by(name='user').first()
+        token = self.login_user('user@email.com')
+        self.post_image(user.id, token)
+        local_file = open("./photos/output_file.jpg", "r")
+        self.assertEqual(local_file.read(), "content\n")
+        local_file.close()
+        self.delete_test_file("output_file.jpg")
 
     def test_post_messages(self):
         self.create_users()
