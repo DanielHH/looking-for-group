@@ -1,7 +1,7 @@
 import os
 import binascii
 import datetime
-from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_file
+from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_file, redirect
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +19,8 @@ else:
 db = SQLAlchemy(app)
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
+
+APPLICATION_URL = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com"
 
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
@@ -708,13 +710,20 @@ def join_match(match_id):
     if request.method in ["GET", "POST"]:
         match = Match.query.get(match_id)
         if g.user not in match.played_by:
-            # TODO: update match.cur_players
-            match.played_by.append(g.user)
-        else:
+            if match.increment_cur_players():
+                match.played_by.append(g.user)
+                db.session.commit()
+                return json.dumps(get_match_data(match))
+            else:
+                return abort(409)
+        elif match.decrement_cur_players:
             match.played_by.remove(g.user)
-        db.session.commit()
-
-        return json.dumps(get_match_data(match))
+            db.session.commit()
+            return json.dumps(get_match_data(match))
+        else:
+            Match.remove(match)
+            db.session.commit()
+            return redirect(APPLICATION_URL + "/matches/", 200)
 
     else:
         return abort(405)
@@ -765,6 +774,11 @@ def page_not_found(err):
 @app.errorhandler(405)
 def method_error(err):
     return 'HTTP 405: ' + str(err), 405
+
+
+@app.errorhandler(409)
+def conflict(err):
+    return 'HTTP 409: ' + str(err), 409
 
 
 @app.errorhandler(500)
