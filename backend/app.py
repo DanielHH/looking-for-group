@@ -147,6 +147,8 @@ class Match(db.Model):
 
     name_location = db.Column(db.Text, nullable=True)
 
+    title = db.Column(db.Text, nullable=True)
+
     comments = db.relationship('Message',
                                secondary=comments_table,
                                back_populates='posted_on')
@@ -155,7 +157,7 @@ class Match(db.Model):
                                 secondary=matches_table,
                                 back_populates='played')
 
-    def __init__(self, max_players, location, uid):
+    def __init__(self, title, max_players, location, uid):
         self.max_players = max_players
         # self.started_by = uid
         self.cur_players = 1
@@ -163,6 +165,8 @@ class Match(db.Model):
         self.created_date = datetime.datetime.now()
 
         self.played_by.append(uid)
+
+        self.title = title
 
         if type(location) is str:
             self.name_location = location
@@ -176,6 +180,19 @@ class Match(db.Model):
     def __repr__(self):
         # TODO: change this to game and date
         return str(self.id)
+
+    def increment_curr_players(self):
+        if self.cur_players < self.max_players:
+            self.cur_players += 1
+            return True
+        return False
+
+    def decrement_curr_players(self):
+        if self.cur_players == 1:
+            return False
+        else:
+            self.cur_players -= 1
+            return True
 
 
 def verify_login(func):
@@ -609,13 +626,15 @@ def post_match():
     if request.method == "POST":
         data = request.get_json()
 
+        title = data['title']
         location = data['location']
         max_players = data['max_players']
+
 
         # TODO: Make players connect a game_id from boardgamegeek to the desired match
         game_name = data['game_name']
 
-        match = Match(max_players, location, g.user)
+        match = Match(title, max_players, location, g.user)
 
         db.session.add(match)
         db.session.commit()
@@ -744,9 +763,9 @@ def post_dummy_data():
     eric_uid = User.query.filter_by(email='eriny656@student.liu.se').first()
     user_uid = User.query.filter_by(email='user@email.com').first()
 
-    db.session.add(Match(3, "irblosset", daniel_uid))
-    db.session.add(Match(5, "skäggetorp", eric_uid))
-    db.session.add(Match(2, "C-huset", user_uid))
+    db.session.add(Match('Terraforming Uranus', 3, "irblosset", daniel_uid))
+    db.session.add(Match('PanDAMNic', 5, "skäggetorp", eric_uid))
+    db.session.add(Match('Talisman', 2, "C-huset", user_uid))
 
     db.session.commit()
 
@@ -762,6 +781,7 @@ def parameter_error(err):
 
 
 @app.errorhandler(401)
+
 def unauthorized(err):
     return 'HTTP 401: ' + str(err), 401
 
