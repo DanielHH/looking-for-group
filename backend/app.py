@@ -378,17 +378,18 @@ def view_profile(user_id):
 
     if request.method == "GET":
         data = {'email': user.email,
-                'name': user.name,
-                'picture': user.picture}
+                'name': user.name}
 
         match_list = []
         for match in Match.query.filter(Match.played_by.any(id=user_id)).all():
-            match_data = {'id': match.id,
-                          'amt_players': match.cur_players,
-                          'game_on_date': match.game_on_date,
+            match_data = {'location': match.name_location,
+                          'title': match.title,
+                          'created_date': match.created_date,
+                          'cur_players': match.cur_players,
+                          'max_players': match.max_players,
+                          'match_id': match.id,
                           # 'started_by': match.started_by,
-                          'location': match.name_location}
-
+                          'game_on_date': match.game_on_date}
             match_list.append(match_data)
 
         data['matches_played'] = match_list
