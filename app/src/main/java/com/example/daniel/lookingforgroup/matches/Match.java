@@ -59,7 +59,7 @@ public class Match implements Parcelable {
 
         try {
             this.matchId = (Integer) matchData.get("match_id");
-            this.gameName = (String) matchData.get("title");
+            this.gameName = (String) matchData.get("game_name");
             this.location = (String) matchData.get("location");
             this.maxPlayers = (Integer) matchData.get("max_players");
             this.curPlayers = (Integer) matchData.get("cur_players");
