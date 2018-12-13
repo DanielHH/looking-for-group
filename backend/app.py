@@ -181,13 +181,13 @@ class Match(db.Model):
         # TODO: change this to game and date
         return str(self.id)
 
-    def increment_curr_players(self):
+    def increment_cur_players(self):
         if self.cur_players < self.max_players:
             self.cur_players += 1
             return True
         return False
 
-    def decrement_curr_players(self):
+    def decrement_cur_players(self):
         if self.cur_players == 1:
             return False
         else:
@@ -347,10 +347,7 @@ def get_profile_picture(user_id):
 @app.route("/images/<user_id>", methods=["POST"])
 @verify_login
 def post_profile_picture(user_id):
-    if str(g.user.id) != user_id:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         if 'image' not in request.files:
             flash('No file part')
             return abort(400)
@@ -381,17 +378,18 @@ def view_profile(user_id):
 
     if request.method == "GET":
         data = {'email': user.email,
-                'name': user.name,
-                'picture': user.picture}
+                'name': user.name}
 
         match_list = []
         for match in Match.query.filter(Match.played_by.any(id=user_id)).all():
-            match_data = {'id': match.id,
-                          'amt_players': match.cur_players,
-                          'game_on_date': match.game_on_date,
+            match_data = {'location': match.name_location,
+                          'title': match.title,
+                          'created_date': match.created_date,
+                          'cur_players': match.cur_players,
+                          'max_players': match.max_players,
+                          'match_id': match.id,
                           # 'started_by': match.started_by,
-                          'location': match.name_location}
-
+                          'game_on_date': match.game_on_date}
             match_list.append(match_data)
 
         data['matches_played'] = match_list
@@ -591,7 +589,7 @@ def get_matches():
     matches = Match.query.all()
     if not matches:
         # TODO: Have frontend show a 'no games' window?
-        return 'HTTP 200', 200
+        return 'No games available', 200
 
     if request.method == "GET":
         match_list = []
