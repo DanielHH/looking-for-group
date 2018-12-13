@@ -181,13 +181,13 @@ class Match(db.Model):
         # TODO: change this to game and date
         return str(self.id)
 
-    def increment_curr_players(self):
+    def increment_cur_players(self):
         if self.cur_players < self.max_players:
             self.cur_players += 1
             return True
         return False
 
-    def decrement_curr_players(self):
+    def decrement_cur_players(self):
         if self.cur_players == 1:
             return False
         else:
@@ -347,10 +347,7 @@ def get_profile_picture(user_id):
 @app.route("/images/<user_id>", methods=["POST"])
 @verify_login
 def post_profile_picture(user_id):
-    if str(g.user.id) != user_id:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         if 'image' not in request.files:
             flash('No file part')
             return abort(400)
@@ -591,7 +588,7 @@ def get_matches():
     matches = Match.query.all()
     if not matches:
         # TODO: Have frontend show a 'no games' window?
-        return 'HTTP 200', 200
+        return 'No games available', 200
 
     if request.method == "GET":
         match_list = []
