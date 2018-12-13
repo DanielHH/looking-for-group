@@ -266,11 +266,15 @@ class DataTest(unittest.TestCase):
 
         rv = json.loads(self.join_match(join_token).data)
         print(rv["played_by"])
+        print(rv["cur_players"])
         self.assertEqual(rv["played_by"][0]["email"], "user@email.com", "Failed in join match")
+        self.assertEqual(rv["cur_players"], 2, "Failed in join match")
 
         rv = json.loads(self.join_match(post_token).data)
         print(rv["played_by"])
+        print(rv["cur_players"])
         self.assertEqual(rv["played_by"][0]["email"], "eriny656@student.liu.se", "Failed in leave match")
+        self.assertEqual(rv["cur_players"], 1, "Failed in leave match")
 
     def test_view_profile(self):
         self.create_users()

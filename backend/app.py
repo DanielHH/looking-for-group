@@ -725,6 +725,10 @@ def post_comment(match_id):
 def join_match(match_id):
     if request.method in ["GET", "POST"]:
         match = Match.query.get(match_id)
+
+        if app.config['TESTING']:
+            print(match.played_by)
+
         if g.user not in match.played_by:
             if match.increment_cur_players():
                 match.played_by.append(g.user)
@@ -732,10 +736,12 @@ def join_match(match_id):
                 return json.dumps(get_match_data(match))
             else:
                 return abort(409)
-        elif match.decrement_cur_players:
+
+        elif match.decrement_cur_players():
             match.played_by.remove(g.user)
             db.session.commit()
             return json.dumps(get_match_data(match))
+
         else:
             Match.remove(match)
             db.session.commit()
