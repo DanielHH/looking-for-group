@@ -259,7 +259,9 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     @Override
     public void processFinish(Bitmap response) {
         try {
-            this.profilePicture.setImageBitmap(response);
+            if(response != null) {
+                this.profilePicture.setImageBitmap(response);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
