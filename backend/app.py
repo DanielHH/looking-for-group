@@ -775,7 +775,6 @@ def post_dummy_data():
     if app.config['TESTING']:
         print(Match.query.all())
         print(Match.query.get(1).game_name)
-        print(Match.query.get(1).game_name)
 
     return "HTTP 200", 200
 
