@@ -743,7 +743,7 @@ def join_match(match_id):
             return json.dumps(get_match_data(match))
 
         else:
-            Match.remove(match)
+            db.session.delete(match)
             db.session.commit()
             return redirect(APPLICATION_URL + "/matches/", 200)
 

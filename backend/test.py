@@ -5,6 +5,7 @@ import json
 import time
 import os
 import io
+from flask import url_for
 
 
 class DataTest(unittest.TestCase):
@@ -265,16 +266,16 @@ class DataTest(unittest.TestCase):
         join_token = self.login_user('eriny656@student.liu.se')
 
         rv = json.loads(self.join_match(join_token).data)
-        print(rv["played_by"])
-        print(rv["cur_players"])
         self.assertEqual(rv["played_by"][0]["email"], "user@email.com", "Failed in join match")
         self.assertEqual(rv["cur_players"], 2, "Failed in join match")
 
         rv = json.loads(self.join_match(post_token).data)
-        print(rv["played_by"])
-        print(rv["cur_players"])
         self.assertEqual(rv["played_by"][0]["email"], "eriny656@student.liu.se", "Failed in leave match")
         self.assertEqual(rv["cur_players"], 1, "Failed in leave match")
+
+        self.join_match(join_token)
+        rv = json.loads(self.server.get('/matches').data.decode(encoding='utf-8'))
+        self.assertEqual(len(rv), 2, "Failed in remove match on leave")
 
     def test_view_profile(self):
         self.create_users()
