@@ -147,7 +147,7 @@ class Match(db.Model):
 
     name_location = db.Column(db.Text, nullable=True)
 
-    title = db.Column(db.Text, nullable=True)
+    game_name = db.Column(db.Text, nullable=True)
 
     comments = db.relationship('Message',
                                secondary=comments_table,
@@ -157,7 +157,7 @@ class Match(db.Model):
                                 secondary=matches_table,
                                 back_populates='played')
 
-    def __init__(self, title, max_players, location, uid):
+    def __init__(self, game_name, max_players, location, uid):
         self.max_players = max_players
         # self.started_by = uid
         self.cur_players = 1
@@ -166,7 +166,7 @@ class Match(db.Model):
 
         self.played_by.append(uid)
 
-        self.title = title
+        self.game_name = game_name
 
         if type(location) is str:
             self.name_location = location
@@ -383,7 +383,7 @@ def view_profile(user_id):
         match_list = []
         for match in Match.query.filter(Match.played_by.any(id=user_id)).all():
             match_data = {'location': match.name_location,
-                          'title': match.title,
+                          'game_name': match.game_name,
                           'created_date': match.created_date,
                           'cur_players': match.cur_players,
                           'max_players': match.max_players,
@@ -600,11 +600,11 @@ def get_matches():
             cur_players = match.cur_players
             created_date = match.created_date
             match_id = match.id
-            title = match.title
+            game_name = match.game_name
 
             match_list.append({'location': location, 'created_date': created_date,
                                'cur_players': cur_players, 'max_players': max_players,
-                               'match_id': match_id, 'title': title})
+                               'match_id': match_id, 'game_name': game_name})
 
             if app.config['TESTING']:
                 print("location: " + location)
@@ -612,7 +612,7 @@ def get_matches():
                 print("cur_players: " + str(cur_players))
                 print("max_players: " + str(max_players))
                 print("match_id: " + str(match_id))
-                print("title: " + str(title))
+                print("game_name: " + str(game_name))
 
         return json.dumps(match_list)
 
@@ -626,11 +626,11 @@ def post_match():
     if request.method == "POST":
         data = request.get_json()
 
-        title = data['title']
+        game_name = data['game_name']
         location = data['location']
         max_players = data['max_players']
 
-        match = Match(title, max_players, location, g.user)
+        match = Match(game_name, max_players, location, g.user)
 
         db.session.add(match)
         db.session.commit()
@@ -660,7 +660,7 @@ def get_match(match_id):
 
 def get_match_data(match):
     match_data = {'location': match.name_location,
-                  'title': match.title,
+                  'game_name': match.game_name,
                   'created_date': match.created_date,
                   'cur_players': match.cur_players,
                   'max_players': match.max_players,
@@ -768,7 +768,8 @@ def post_dummy_data():
 
     if app.config['TESTING']:
         print(Match.query.all())
-        print(Match.query.get(1).title)
+        print(Match.query.get(1).game_name)
+        print(Match.query.get(1).game_name)
 
     return "HTTP 200", 200
 
