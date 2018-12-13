@@ -35,11 +35,11 @@ class DataTest(unittest.TestCase):
 
     def post_matches(self, token):
         self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
-                         data=json.dumps({'location': 'here', 'max_players': 3, 'game_name': 'Robot Wars'}))
+                         data=json.dumps({'location': 'here', 'max_players': 3, 'title': 'Robot Wars'}))
         self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
-                         data=json.dumps({'location': 'there', 'max_players': 5, 'game_name': 'One Night Werewolf'}))
+                         data=json.dumps({'location': 'there', 'max_players': 5, 'title': 'One Night Werewolf'}))
         self.server.post('/matches', headers={'Content-Type': 'application/json', 'Authorization': token},
-                         data=json.dumps({'location': 'everywhere', 'max_players': None, 'game_name': 'Robot Wars'}))
+                         data=json.dumps({'location': 'everywhere', 'max_players': None, 'title': 'Everything'}))
 
     def join_match(self, token):
         rv = self.server.post('/matches/1/join', headers={'Content-Type': 'application/json', 'Authorization': token},
@@ -231,6 +231,7 @@ class DataTest(unittest.TestCase):
         self.assertEqual(rv[0]['location'], 'here', 'Failed in post matches')
         self.assertEqual(rv[0]['match_id'], 1, 'Failed in post matches')
         self.assertEqual(rv[0]['max_players'], 3, 'Failed in post matches')
+        self.assertEqual(rv[0]['title'], 'Robot Wars', 'Failed in post matches')
 
     def test_post_comment(self):
         self.create_users()

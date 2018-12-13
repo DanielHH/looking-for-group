@@ -614,6 +614,7 @@ def get_matches():
                 print("cur_players: " + str(cur_players))
                 print("max_players: " + str(max_players))
                 print("match_id: " + str(match_id))
+                print("title: " + str(title))
 
         return json.dumps(match_list)
 
@@ -630,10 +631,6 @@ def post_match():
         title = data['title']
         location = data['location']
         max_players = data['max_players']
-
-
-        # TODO: Make players connect a game_id from boardgamegeek to the desired match
-        game_name = data['game_name']
 
         match = Match(title, max_players, location, g.user)
 
@@ -773,6 +770,7 @@ def post_dummy_data():
 
     if app.config['TESTING']:
         print(Match.query.all())
+        print(Match.query.get(1).title)
 
     return "HTTP 200", 200
 
