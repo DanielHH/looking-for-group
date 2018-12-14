@@ -1,6 +1,7 @@
 package com.example.daniel.lookingforgroup.matches;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.view.LayoutInflater;
@@ -9,8 +10,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.daniel.lookingforgroup.R;
-
-import org.json.JSONObject;
 
 import java.util.List;
 
@@ -43,6 +42,7 @@ public class MatchesAdapter extends Adapter<MatchesAdapter.ViewHolder> {
         this.listener = listener;
     }
 
+    @NonNull
     @Override
     public MatchesAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
