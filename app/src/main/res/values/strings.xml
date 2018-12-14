@@ -13,7 +13,7 @@
     <string name="title_activity_user_page">UserPage</string>
 
     /*Create new game page*/
-    <string name="add_description">Add a description...</string>
+    <string name="add_location">Add a location</string>
     <string name="button_save">Save</string>
 
     /*Register new user*/

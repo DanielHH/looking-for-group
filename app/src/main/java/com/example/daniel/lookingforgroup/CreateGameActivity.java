@@ -21,6 +21,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,6 +64,11 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
 
         addListenerOnButton();
 
+        NumberPicker np = findViewById(R.id.number_max_players);
+        np.setMinValue(2);
+        np.setMaxValue(100);
+        np.setOnValueChangedListener(onValueChangeListener);
+
         Button buttonSave = findViewById(R.id.btn_save);
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,6 +77,14 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
             }
         });
     }
+
+    NumberPicker.OnValueChangeListener onValueChangeListener =
+            new NumberPicker.OnValueChangeListener(){
+                @Override
+                public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                    maxPlayers = numberPicker.getValue();
+                }
+            };
 
     public void addListenerOnButton() {
         gameAvatar = findViewById(R.id.image_game_avatar);
@@ -167,10 +181,8 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         TextView textGameName = findViewById(R.id.text_game_name);
         this.gameName = textGameName.getText().toString();
 
-        EditText editDescription = findViewById(R.id.edit_description);
+        EditText editDescription = findViewById(R.id.edit_location);
         this.description = editDescription.getText().toString();
-
-        this.maxPlayers = 5; //TODO: ADD 4 REAL. This is just a test.
 
         return "{\"game_name\":\"" + gameName + "\",\"location\":\""
                 + description + "\",\"max_players\":\"" + maxPlayers + "\"}";
