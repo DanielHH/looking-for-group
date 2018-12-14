@@ -19,7 +19,7 @@
     />
 
     <TextView
-        android:id="@+id/titleViewGame"
+        android:id="@+id/gameNameViewGame"
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:layout_marginStart="24dp"
@@ -44,7 +44,7 @@
         android:ellipsize="end"
         android:maxLines="3"
         app:layout_constraintStart_toEndOf="@id/imageViewGame"
-        app:layout_constraintTop_toBottomOf="@id/titleViewGame"/>
+        app:layout_constraintTop_toBottomOf="@id/gameNameViewGame"/>
 
     <TextView
         android:id="@+id/locationViewGame"

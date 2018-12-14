@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
     }
 
     public void goToMyProfile(View view) {
-        Intent intent = new Intent(this, EditProfileActivity.class);
+        Intent intent = new Intent(this, UserPageActivity.class);
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         String id = sp.getString("userId","");
         intent.putExtra("EXTRA_USER_ID", id);

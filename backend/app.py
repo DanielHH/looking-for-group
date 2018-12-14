@@ -1,7 +1,7 @@
 import os
 import binascii
 import datetime
-from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_file
+from flask import Flask, request, json, jsonify, abort, g, flash, url_for, send_file, redirect
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +19,8 @@ else:
 db = SQLAlchemy(app)
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
+
+APPLICATION_URL = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com"
 
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
@@ -145,6 +147,8 @@ class Match(db.Model):
 
     name_location = db.Column(db.Text, nullable=True)
 
+    game_name = db.Column(db.Text, nullable=True)
+
     comments = db.relationship('Message',
                                secondary=comments_table,
                                back_populates='posted_on')
@@ -153,7 +157,7 @@ class Match(db.Model):
                                 secondary=matches_table,
                                 back_populates='played')
 
-    def __init__(self, max_players, location, uid):
+    def __init__(self, game_name, max_players, location, uid):
         self.max_players = max_players
         # self.started_by = uid
         self.cur_players = 1
@@ -161,6 +165,8 @@ class Match(db.Model):
         self.created_date = datetime.datetime.now()
 
         self.played_by.append(uid)
+
+        self.game_name = game_name
 
         if type(location) is str:
             self.name_location = location
@@ -174,6 +180,19 @@ class Match(db.Model):
     def __repr__(self):
         # TODO: change this to game and date
         return str(self.id)
+
+    def increment_cur_players(self):
+        if self.cur_players < self.max_players:
+            self.cur_players += 1
+            return True
+        return False
+
+    def decrement_cur_players(self):
+        if self.cur_players == 1:
+            return False
+        else:
+            self.cur_players -= 1
+            return True
 
 
 def verify_login(func):
@@ -269,9 +288,7 @@ def create_user():
 @app.route("/user/verify", methods=["POST", "GET"])
 @verify_login
 def verify_user():
-    if g.user is None:
-        return abort(401)
-    elif request.method in ["POST", "GET"]:
+    if request.method in ["POST", "GET"]:
         return "HTTP 200", 200
     else:
         return abort(405)
@@ -330,10 +347,7 @@ def get_profile_picture(user_id):
 @app.route("/images/<user_id>", methods=["POST"])
 @verify_login
 def post_profile_picture(user_id):
-    if str(g.user.id) != user_id:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         if 'image' not in request.files:
             flash('No file part')
             return abort(400)
@@ -364,17 +378,18 @@ def view_profile(user_id):
 
     if request.method == "GET":
         data = {'email': user.email,
-                'name': user.name,
-                'picture': user.picture}
+                'name': user.name}
 
         match_list = []
         for match in Match.query.filter(Match.played_by.any(id=user_id)).all():
-            match_data = {'id': match.id,
-                          'amt_players': match.cur_players,
-                          'game_on_date': match.game_on_date,
+            match_data = {'location': match.name_location,
+                          'game_name': match.game_name,
+                          'created_date': match.created_date,
+                          'cur_players': match.cur_players,
+                          'max_players': match.max_players,
+                          'match_id': match.id,
                           # 'started_by': match.started_by,
-                          'location': match.name_location}
-
+                          'game_on_date': match.game_on_date}
             match_list.append(match_data)
 
         data['matches_played'] = match_list
@@ -403,8 +418,6 @@ def view_profile(user_id):
 @verify_login
 def follow_user(follow_id):
     # TODO: This needs testing
-    if g.user is None:
-        return abort(401)
 
     if request.method in ["POST", "GET"]:
         if g.user.id not in User.query.filter(User.follows.any(id=follow_id)).all():
@@ -422,10 +435,7 @@ def follow_user(follow_id):
 @app.route("/user/logout", methods=["POST"])
 @verify_login
 def logout_user():
-    if g.user is None:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         headers = request.headers
         token_value = headers["Authorization"]
         token = Token.query.get(token_value)
@@ -513,10 +523,7 @@ def get_messages():
 @app.route("/messages", methods=["POST"])
 @verify_login
 def post_message():
-    if g.user is None:
-        return abort(401)
-
-    elif request.method == "POST":
+    if request.method == "POST":
         message = request.get_json()
         if len(message) > 140:
             return abort(400)
@@ -535,8 +542,6 @@ def post_message():
 @verify_login
 def flag_as_read(message_id):
     # TODO: change validation to token
-    if g.user is None:
-        return abort(401)
 
     messages = Message.query.all()
     if not messages:
@@ -562,10 +567,7 @@ def flag_as_read(message_id):
 @app.route("/messages/unread", methods=["GET"])
 @verify_login
 def read_unread_messages():
-    if g.user is None:
-        return abort(401)
-
-    elif request.method == "GET":
+    if request.method == "GET":
         unread_messages = []
         messages = Message.query.all()
         for message in messages:
@@ -587,7 +589,7 @@ def get_matches():
     matches = Match.query.all()
     if not matches:
         # TODO: Have frontend show a 'no games' window?
-        return 'HTTP 200', 200
+        return 'No games available', 200
 
     if request.method == "GET":
         match_list = []
@@ -598,10 +600,11 @@ def get_matches():
             cur_players = match.cur_players
             created_date = match.created_date
             match_id = match.id
+            game_name = match.game_name
 
             match_list.append({'location': location, 'created_date': created_date,
                                'cur_players': cur_players, 'max_players': max_players,
-                               'match_id': match_id})
+                               'match_id': match_id, 'game_name': game_name})
 
             if app.config['TESTING']:
                 print("location: " + location)
@@ -609,6 +612,7 @@ def get_matches():
                 print("cur_players: " + str(cur_players))
                 print("max_players: " + str(max_players))
                 print("match_id: " + str(match_id))
+                print("game_name: " + str(game_name))
 
         return json.dumps(match_list)
 
@@ -619,19 +623,14 @@ def get_matches():
 @app.route("/matches", methods=["POST"])
 @verify_login
 def post_match():
-    if g.user is None:
-        return abort(401)
-
     if request.method == "POST":
         data = request.get_json()
 
+        game_name = data['game_name']
         location = data['location']
         max_players = data['max_players']
 
-        # TODO: Make players connect a game_id from boardgamegeek to the desired match
-        game_name = data['game_name']
-
-        match = Match(max_players, location, g.user)
+        match = Match(game_name, max_players, location, g.user)
 
         db.session.add(match)
         db.session.commit()
@@ -661,6 +660,7 @@ def get_match(match_id):
 
 def get_match_data(match):
     match_data = {'location': match.name_location,
+                  'game_name': match.game_name,
                   'created_date': match.created_date,
                   'cur_players': match.cur_players,
                   'max_players': match.max_players,
@@ -700,9 +700,6 @@ def get_match_data(match):
 @app.route("/matches/<match_id>", methods=["POST"])
 @verify_login
 def post_comment(match_id):
-    if g.user is None:
-        return abort(401)
-
     match = Match.query.get(match_id)
     if not match:
         print("match id NOT located in database")
@@ -727,19 +724,29 @@ def post_comment(match_id):
 @app.route("/matches/<match_id>/join", methods=["GET", "POST"])
 @verify_login
 def join_match(match_id):
-    if g.user is None:
-        return abort(401)
-
     if request.method in ["GET", "POST"]:
         match = Match.query.get(match_id)
-        if g.user not in match.played_by:
-            # TODO: update match.cur_players
-            match.played_by.append(g.user)
-        else:
-            match.played_by.remove(g.user)
-        db.session.commit()
 
-        return json.dumps(get_match_data(match))
+        if app.config['TESTING']:
+            print(match.played_by)
+
+        if g.user not in match.played_by:
+            if match.increment_cur_players():
+                match.played_by.append(g.user)
+                db.session.commit()
+                return json.dumps(get_match_data(match))
+            else:
+                return abort(409)
+
+        elif match.decrement_cur_players():
+            match.played_by.remove(g.user)
+            db.session.commit()
+            return json.dumps(get_match_data(match))
+
+        else:
+            db.session.delete(match)
+            db.session.commit()
+            return redirect(APPLICATION_URL + "/matches/", 200)
 
     else:
         return abort(405)
@@ -760,14 +767,15 @@ def post_dummy_data():
     eric_uid = User.query.filter_by(email='eriny656@student.liu.se').first()
     user_uid = User.query.filter_by(email='user@email.com').first()
 
-    db.session.add(Match(3, "irblosset", daniel_uid))
-    db.session.add(Match(5, "skäggetorp", eric_uid))
-    db.session.add(Match(2, "C-huset", user_uid))
+    db.session.add(Match('Terraforming Uranus', 3, "irblosset", daniel_uid))
+    db.session.add(Match('PanDAMNic', 5, "skäggetorp", eric_uid))
+    db.session.add(Match('Talisman', 2, "C-huset", user_uid))
 
     db.session.commit()
 
     if app.config['TESTING']:
         print(Match.query.all())
+        print(Match.query.get(1).game_name)
 
     return "HTTP 200", 200
 
@@ -790,6 +798,11 @@ def page_not_found(err):
 @app.errorhandler(405)
 def method_error(err):
     return 'HTTP 405: ' + str(err), 405
+
+
+@app.errorhandler(409)
+def conflict(err):
+    return 'HTTP 409: ' + str(err), 409
 
 
 @app.errorhandler(500)
