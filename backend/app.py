@@ -688,6 +688,7 @@ def get_match_data(match):
         comment_data = {'id': comment.id,
                         'author': comment.author_id,
                         'message': comment.message,
+                        'name': User.query.get(comment.author_id).name,
                         'date': comment.date}
 
         comment_list.append(comment_data)
@@ -702,19 +703,19 @@ def post_comment(match_id):
     match = Match.query.get(match_id)
     if not match:
         print("match id NOT located in database")
-        return abort(400)
+        return abort(400, "match id {0} NOT located in database".format(match_id))
 
     if request.method == "POST":
         comment = request.get_json()
         if len(comment) > 140:
-            return abort(400)
+            return abort(400, "Message too long")
         # [2:-1] removes extra symbols added by binascii
         # TODO: control for duplicate message ids
         message_id = str(binascii.b2a_hex(os.urandom(12)))[2:-1]
         db.session.add(Message(comment, g.user.id, message_id, match))
         db.session.commit()
 
-        return "HTTP 200", 200
+        return json.dumps(get_match_data(match))
 
     else:
         return abort(405)
