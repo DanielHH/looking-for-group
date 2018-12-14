@@ -33,29 +33,15 @@
         app:layout_constraintTop_toTopOf="@+id/imageViewGame"/>
 
     <TextView
-        android:id="@+id/descViewGame"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="5dp"
-        android:text="Description"
-        android:maxWidth="180dp"
-        android:textSize="6pt"
-        android:ellipsize="end"
-        android:maxLines="3"
-        app:layout_constraintStart_toEndOf="@id/imageViewGame"
-        app:layout_constraintTop_toBottomOf="@id/gameNameViewGame"/>
-
-    <TextView
         android:id="@+id/locationViewGame"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="location"
-        app:layout_constraintTop_toBottomOf="@+id/descViewGame"
-        app:layout_constraintStart_toStartOf="@id/descViewGame"
+        app:layout_constraintTop_toBottomOf="@+id/gameNameViewGame"
+        app:layout_constraintStart_toStartOf="@id/gameNameViewGame"
+        app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="5dp"
         android:textSize="6pt"
-        android:maxWidth="180dp"
         android:ellipsize="end"
         android:maxLines="1" />
 
@@ -72,6 +58,7 @@
         android:id="@+id/fractionViewGame"
         android:layout_width="50dp"
         android:layout_height="50dp"
+        android:layout_marginBottom="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/dividerViewGame" />
 
@@ -82,20 +69,47 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
+        android:layout_marginBottom="10dp"
         app:layout_constraintBottom_toTopOf="@+id/dividerViewGame"
         app:layout_constraintEnd_toStartOf="@id/fractionViewGame"
         app:layout_constraintStart_toEndOf="@id/imageViewGame" />
 
     <include
-        layout="@layout/item_comment"
+        layout="@layout/lobby_comments"
         android:id="@+id/lobbyComments"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dividerViewGame"
+        app:layout_constraintBottom_toTopOf="@+id/lobbyAddCommentText"
         />
 
+    <EditText
+        android:id="@+id/lobbyAddCommentText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="comment"
+        android:textSize="6pt"
+        android:inputType="textMultiLine|textCapSentences"
+        android:gravity="start|bottom"
+        android:minLines="1"
+        android:maxLines="3"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/lobbyPostButton"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <Button
+        android:id="@+id/lobbyPostButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Post"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 
 </android.support.constraint.ConstraintLayout>
