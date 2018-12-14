@@ -6,16 +6,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.daniel.lookingforgroup.AsyncResponse;
-import com.example.daniel.lookingforgroup.Comment;
-import com.example.daniel.lookingforgroup.CommentsAdapter;
+import com.example.daniel.lookingforgroup.matches.Comment.Comment;
+import com.example.daniel.lookingforgroup.matches.Comment.CommentsAdapter;
 import com.example.daniel.lookingforgroup.GetData;
 import com.example.daniel.lookingforgroup.PostData;
 import com.example.daniel.lookingforgroup.R;
@@ -144,6 +142,8 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
             joinButton.setEnabled(true);
             buttonLeaveComment.setEnabled(true);
 
+            rvComments.scrollToPosition(comments.size() - 1);
+
             if (isInPlayers(myId)) {
                 joinButton.setText("Leave");
             } else if (curPlayers < maxPlayers) {
@@ -197,7 +197,8 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         buttonLeaveComment.setEnabled(false);
         joinButton.setEnabled(false);
 
-        String postBody = textLeaveComment.getText().toString();
+        String postBody =  '\"' + textLeaveComment.getText().toString() + '\"';
+        textLeaveComment.setText("");
 
         PostData postData = new PostData();
         postData.delegate = this;
