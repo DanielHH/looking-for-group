@@ -11,12 +11,22 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
 app = Flask(__name__)
+db = SQLAlchemy(app)
+
+if 'NAMESPACE' in os.environ and os.environ['NAMESPACE'] == 'heroku':
+    db_uri = os.environ['DATABASE_URL']
+    debug_flag = False
+else:
+    db_path = os.path.join(os.path.dirname(__file__), 'app.db')
+    db.uri = 'sqlite:///{}'.format(db_path)
+    debug_flag = True
+
+"""
 if "OPENSHIFT_POSTGRESQL_DB_URL" in os.environ:
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ['OPENSHIFT_POSTGRESQL_DB_URL']
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/test.db"
-
-db = SQLAlchemy(app)
+"""
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
 
