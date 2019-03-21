@@ -6,9 +6,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,6 +24,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.daniel.lookingforgroup.HelpClasses.Constants;
+import com.example.daniel.lookingforgroup.HelpClasses.FetchAddressIntentService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -50,6 +55,10 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     private ImageView profileAvatar;
 
     private FusedLocationProviderClient fusedLocationClient;
+
+    protected Location lastLocation;
+    private AddressResultReceiver mResultReceiver;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -206,28 +215,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         checkLocation();
     }
 
-    private void checkLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_LOCATION);
-        } else {
-            fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-                                Log.d("daaa ", location.toString());
-                            } else {
-                                Log.d("deee ", location.toString());
-                            }
-                        }
-                    });
-        }
-    }
-
     private Bitmap bitmapScaler(Bitmap bitmap) {
         final int goodWidth = 500;
         float factor = goodWidth / (float) bitmap.getWidth();
@@ -323,5 +310,100 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         }
 
         return true;
+    }
+
+    private void checkLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        } else {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            lastLocation = location;
+
+                            // In some rare cases the location returned can be null
+                            if (lastLocation == null) {
+                                return;
+                            }
+
+                            if (!Geocoder.isPresent()) {
+                                Toast.makeText(RegisterUserActivity.this,
+                                        R.string.no_geocoder_available,
+                                        Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+                            // Start service and update UI to reflect new location
+                            startIntentService();
+                        }
+                    });
+        }
+    }
+
+    private void fetchAddressButtonHander() {
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        lastLocation = location;
+
+                        // In some rare cases the location returned can be null
+                        if (lastLocation == null) {
+                            return;
+                        }
+
+                        if (!Geocoder.isPresent()) {
+                            Toast.makeText(RegisterUserActivity.this,
+                                    R.string.no_geocoder_available,
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        // Start service and update UI to reflect new location
+                        startIntentService();
+                    }
+                });
+    }
+
+    protected void startIntentService() {
+        mResultReceiver = new AddressResultReceiver(new android.os.Handler());
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(Constants.LOCATION_DATA_EXTRA, lastLocation);
+        startService(intent);
+    }
+
+    class AddressResultReceiver extends ResultReceiver {
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            if (resultData == null) {
+                return;
+            }
+
+            // Display the address string
+            // or an error message sent from the intent service.
+            String addressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            if (addressOutput == null) {
+                addressOutput = "";
+            }
+            //displayAddressOutput();
+            Log.d("diii: ", addressOutput);
+
+            // Show a toast message if an address was found.
+            if (resultCode == Constants.SUCCESS_RESULT) {
+                //showToast(getString(R.string.address_found));
+            }
+
+        }
     }
 }
