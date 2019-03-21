@@ -25,14 +25,23 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                newSubmitData();
+                //newSubmitData();
+                testLogin();
             }
         });
     }
 
     public void goToRegister(View view) {
-
         Intent intent = new Intent(this, RegisterUserActivity.class);
+        startActivity(intent);
+    }
+
+    private void testLogin() {
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("token", "asdfasdfasdfasdfasdfasdfasdfasdf");
+        editor.apply(); // TODO: remove this line.
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 
@@ -71,10 +80,8 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
             Toast.makeText(this, "Not a valid email", Toast.LENGTH_SHORT).show();
             return "";
         }
-
         TextView tPassword = findViewById(R.id.edit_password_login);
         String password = tPassword.getText().toString();
-
         return "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
     }
 
