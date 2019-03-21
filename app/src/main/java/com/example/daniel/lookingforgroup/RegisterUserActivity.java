@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -19,6 +20,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -39,9 +44,12 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
+    private int REQUEST_LOCATION = 6;
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private ImageView profileAvatar;
+
+    private FusedLocationProviderClient fusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -62,9 +70,9 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                 else {
                     submitMixedData();
                 }
-
             }
         });
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     private void submitData() { //TODO: Remove this function if SubmitMixedData works.
@@ -195,6 +203,29 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         Bitmap finalBitmap = bitmapScaler(bitmap);
         profileAvatar.setImageBitmap(finalBitmap);
         persistImage(finalBitmap, "profilePic");
+        checkLocation();
+    }
+
+    private void checkLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        } else {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            if (location != null) {
+                                Log.d("daaa ", location.toString());
+                            } else {
+                                Log.d("deee ", location.toString());
+                            }
+                        }
+                    });
+        }
     }
 
     private Bitmap bitmapScaler(Bitmap bitmap) {
@@ -219,7 +250,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     }
 
     private String getFormattedDataString() { //TODO: Remove this function if SubmitMixedData works.
-
         TextView tName = findViewById(R.id.nameRegister);
         String name = tName.getText().toString();
         if (name.equals("")) {
