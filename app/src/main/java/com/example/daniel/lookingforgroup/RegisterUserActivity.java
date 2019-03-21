@@ -52,7 +52,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
 
         addListenerOnButton();
 
-        Button buttonRegister = (Button)findViewById(R.id.btn_register);
+        Button buttonRegister = (Button)findViewById(R.id.btn_go_to_register);
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
