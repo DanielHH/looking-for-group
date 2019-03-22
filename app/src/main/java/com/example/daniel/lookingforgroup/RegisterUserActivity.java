@@ -61,6 +61,8 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private ImageView profileAvatar;
 
+    private String baseUrl;
+
     private FusedLocationProviderClient fusedLocationClient;
 
     protected Location lastLocation;
@@ -88,6 +90,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                 }
             }
         });
+        baseUrl = getResources().getString(R.string.url);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
@@ -101,7 +104,8 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
-        String url = R.string.url + "user";
+        String url = baseUrl + "user";
+        Log.d("deee", url);
         String jsonData = getFormattedDataString();
 
         try {
@@ -117,7 +121,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         postMixedData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postMixedData.setSP(sp);
-        String url = R.string.url + "user";
+        String url = baseUrl + "user";
 
         if (isValidInput()) {
             try {
@@ -141,7 +145,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             goToLogin();
         }
         else {
-            Toast.makeText(this, "This email is already registered", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, response + " This email is already registered", Toast.LENGTH_SHORT).show();
         }
     }
 

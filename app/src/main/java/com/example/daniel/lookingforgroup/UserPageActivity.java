@@ -44,6 +44,8 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
 
+    private String baseUrl;
+
     TextView name;
     ImageView profilePicture;
     String userId;
@@ -77,6 +79,8 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
                 selectImage();
             }
         });
+
+        baseUrl = getResources().getString(R.string.url);
     }
 
     // Select image from camera and gallery
@@ -156,7 +160,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         postMixedData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postMixedData.setSP(sp);
-        String url = R.string.url + "images/" + userId;
+        String url = baseUrl + "images/" + userId;
 
             try {
                 //execute the async task
@@ -192,7 +196,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     public void getUserData(String userId) {
         GetData getData = new GetData();
         getData.delegate = this;
-        String url = R.string.url + "user/" + userId;
+        String url = baseUrl + "user/" + userId;
         try {//execute the async task
             getData.execute(url);
         } catch (Exception e) {
@@ -246,7 +250,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         GetImageData getImageData = new GetImageData();
         getImageData.delegate = this;
 
-        String url = R.string.url + "user/" + userId + "/image";
+        String url = baseUrl + "user/" + userId + "/image";
         try {//execute the async task
             getImageData.execute(url);
         } catch (Exception e) {

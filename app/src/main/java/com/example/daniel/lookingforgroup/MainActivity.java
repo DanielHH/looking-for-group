@@ -16,6 +16,9 @@ import com.example.daniel.lookingforgroup.matches.OpenGamesActivity;
 public class MainActivity extends AppCompatActivity implements AsyncResponse {
 
     public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
+
+    private String baseUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        baseUrl = getResources().getString(R.string.url);
     }
 
     /** Called when the user taps the "Create Game"-button */
@@ -60,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
-        String url = R.string.url + "user/logout";
+        String url = baseUrl + "user/logout";
 
         try {
             //execute the async task
