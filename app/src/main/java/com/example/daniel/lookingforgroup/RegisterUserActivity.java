@@ -228,7 +228,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         OutputStream os;
         try {
             os = new FileOutputStream(imageFile);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, os);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
             os.flush();
             os.close();
         } catch (Exception e) {
@@ -398,6 +398,8 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             }
             //displayAddressOutput();
             Log.d("diii: ", addressOutput);
+            TextView tAddressImage = findViewById(R.id.textAddressImage);
+            tAddressImage.setText(addressOutput);
 
             // Show a toast message if an address was found.
             if (resultCode == Constants.SUCCESS_RESULT) {
