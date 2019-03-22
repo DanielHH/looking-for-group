@@ -48,6 +48,8 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_game);
 
+        baseUrl = getResources().getString(R.string.url);
+
         // Get the Intent that started this activity and extract the string
         Intent intent = getIntent();
         String message = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
@@ -70,8 +72,6 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
                 submitData();
             }
         });
-
-        baseUrl = getResources().getString(R.string.url);
     }
 
     NumberPicker.OnValueChangeListener onValueChangeListener =

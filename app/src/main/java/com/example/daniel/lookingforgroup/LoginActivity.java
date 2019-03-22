@@ -26,8 +26,8 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //newSubmitData();
-                testLogin();
+                newSubmitData();
+                //testLogin();
             }
         });
         baseUrl = getResources().getString(R.string.url);

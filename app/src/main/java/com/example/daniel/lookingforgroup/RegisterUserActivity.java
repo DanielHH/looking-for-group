@@ -105,7 +105,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
         String url = baseUrl + "user";
-        Log.d("deee", url);
         String jsonData = getFormattedDataString();
 
         try {
