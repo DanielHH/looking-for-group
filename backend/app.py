@@ -30,7 +30,7 @@ else:
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
 
-APPLICATION_URL = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com"
+APPLICATION_URL = "https://looking-for-group-boardgames.herokuapp.com"
 
 SECONDS_IN_ONE_WEEK = 604800
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
