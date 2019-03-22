@@ -45,11 +45,11 @@ public class PostLogin extends AsyncTask<String, Void, String[]> {
             String id = data.getString("id");
             SharedPreferences.Editor editor = sp.edit();
             editor.putString("token", token);
-            editor.apply();
+            editor.apply(); // TODO: remove this line.
             editor.putString("userId", id);
             editor.apply();
             String tokenDic = sp.getString("token", "");
-            System.out.println("Token: " + tokenDic);
+            System.out.println("Token: " + tokenDic); // TODO: remove this line.
         } catch (JSONException e) {
             e.printStackTrace();
         }

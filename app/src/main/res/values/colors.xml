@@ -2,5 +2,9 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#ff2a73</color>
+    <color name="colorPrimaryButton">#c9527b40</color>
+    <color name="colorBorderlessButton">#cbfff7</color>
+    <color name="colorLoginText">#f4fefd</color>
+    <color name="colorHintText">#2affffff</color>
 </resources>
