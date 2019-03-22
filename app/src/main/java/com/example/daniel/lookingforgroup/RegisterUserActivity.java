@@ -84,6 +84,11 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
+    public void goToLogin() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
+
     private void submitData() { //TODO: Remove this function if SubmitMixedData works.
         PostData postData = new PostData();
         postData.delegate = this;
@@ -127,6 +132,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         //TODO: Handle different responses
         if(response.equals("HTTP 200")) {
             Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show();
+            goToLogin();
         }
         else {
             Toast.makeText(this, "This email is already registered", Toast.LENGTH_SHORT).show();
