@@ -35,6 +35,8 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
 
+    private String baseUrl;
+
     ImageView gameAvatar;
     String gameName;
     String location;
@@ -68,6 +70,8 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
                 submitData();
             }
         });
+
+        baseUrl = getResources().getString(R.string.url);
     }
 
     NumberPicker.OnValueChangeListener onValueChangeListener =
@@ -195,7 +199,7 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
-        String url = R.string.url + "matches";
+        String url = baseUrl + "matches";
         String jsonData = getFormattedDataString();
         Log.d("dee", jsonData);
         if(jsonData == "") {

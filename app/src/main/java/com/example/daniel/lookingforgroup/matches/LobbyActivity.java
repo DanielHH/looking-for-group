@@ -49,6 +49,8 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     JSONArray players; // Contains info for all players in a match
     ArrayList<Comment> comments; // Contains all comments for the match
 
+    private String baseUrl;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,6 +111,8 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         numView.setText(String.valueOf(curPlayers));
         denView.setText(String.valueOf(maxPlayers));
 
+        baseUrl = getResources().getString(R.string.url);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
@@ -116,7 +120,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     private void getMatchData() {
         GetData getData = new GetData();
         getData.delegate = this;
-        StringBuilder url = new StringBuilder(R.string.url + "matches/");
+        StringBuilder url = new StringBuilder(baseUrl + "matches/");
         url.append(id);
         try {
             getData.execute(url.toString());
@@ -180,7 +184,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         PostData postData = new PostData();
         postData.setSP(sp);
         postData.delegate = this;
-        StringBuilder url = new StringBuilder(R.string.url + "matches/");
+        StringBuilder url = new StringBuilder(baseUrl + "matches/");
         url.append(id);
         url.append("/join");
         try {
@@ -202,7 +206,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
 
         PostData postData = new PostData();
         postData.delegate = this;
-        StringBuilder url = new StringBuilder(R.string.url + "matches/");
+        StringBuilder url = new StringBuilder(baseUrl + "matches/");
         url.append(id);
 
         postData.setSP(sp);

@@ -30,6 +30,8 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
     RecyclerView rvMatches;
     MatchesAdapter adapter;
 
+    private String baseUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +46,8 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        baseUrl = getResources().getString(R.string.url);
     }
 
     @Override
@@ -74,7 +78,7 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
     private void getMatchData() {
         GetData getData = new GetData();
         getData.delegate = this;
-        String URL = R.string.url + "matches";
+        String URL = baseUrl + "matches";
         try {
             getData.execute(URL);
         } catch (Exception e) {

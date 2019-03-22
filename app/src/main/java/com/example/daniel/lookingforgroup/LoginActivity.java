@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 public class LoginActivity extends AppCompatActivity implements LoginResponse {
 
+    private String baseUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +30,7 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
                 testLogin();
             }
         });
+        baseUrl = getResources().getString(R.string.url);
     }
 
     public void goToRegister(View view) {
@@ -50,7 +52,7 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         postLogin.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postLogin.setSP(sp);
-        String url = R.string.url + "user/login";
+        String url = baseUrl + "user/login";
         String jsonData = getFormattedDataString();
 
         try {
