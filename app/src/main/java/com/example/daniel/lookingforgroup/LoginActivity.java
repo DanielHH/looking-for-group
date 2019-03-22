@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
         postLogin.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postLogin.setSP(sp);
-        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user/login";
+        String url = R.string.url + "user/login";
         String jsonData = getFormattedDataString();
 
         try {

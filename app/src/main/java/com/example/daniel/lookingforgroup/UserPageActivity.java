@@ -156,7 +156,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         postMixedData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postMixedData.setSP(sp);
-        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/images/" + userId;
+        String url = R.string.url + "images/" + userId;
 
             try {
                 //execute the async task
@@ -192,8 +192,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     public void getUserData(String userId) {
         GetData getData = new GetData();
         getData.delegate = this;
-        String url = "http://looking-for-group-looking-for-group" +
-                ".193b.starter-ca-central-1.openshiftapps.com/user/" + userId;
+        String url = R.string.url + "user/" + userId;
         try {//execute the async task
             getData.execute(url);
         } catch (Exception e) {
@@ -247,8 +246,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         GetImageData getImageData = new GetImageData();
         getImageData.delegate = this;
 
-        String url = "http://looking-for-group-looking-for-group" +
-                ".193b.starter-ca-central-1.openshiftapps.com/user/" + userId + "/image";
+        String url = R.string.url + "user/" + userId + "/image";
         try {//execute the async task
             getImageData.execute(url);
         } catch (Exception e) {

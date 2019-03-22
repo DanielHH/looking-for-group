@@ -116,7 +116,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     private void getMatchData() {
         GetData getData = new GetData();
         getData.delegate = this;
-        StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
+        StringBuilder url = new StringBuilder(R.string.url + "matches/");
         url.append(id);
         try {
             getData.execute(url.toString());
@@ -180,7 +180,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         PostData postData = new PostData();
         postData.setSP(sp);
         postData.delegate = this;
-        StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
+        StringBuilder url = new StringBuilder(R.string.url + "matches/");
         url.append(id);
         url.append("/join");
         try {
@@ -202,7 +202,7 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
 
         PostData postData = new PostData();
         postData.delegate = this;
-        StringBuilder url = new StringBuilder("http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches/");
+        StringBuilder url = new StringBuilder(R.string.url + "matches/");
         url.append(id);
 
         postData.setSP(sp);

@@ -72,8 +72,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
-        String url = "http://looking-for-group-looking-for-group" +
-                ".193b.starter-ca-central-1.openshiftapps.com/user";
+        String url = R.string.url + "user";
         String jsonData = getFormattedDataString();
 
         try {
@@ -89,7 +88,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         postMixedData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postMixedData.setSP(sp);
-        String url = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/user";
+        String url = R.string.url + "user";
 
         if (isValidInput()) {
             try {

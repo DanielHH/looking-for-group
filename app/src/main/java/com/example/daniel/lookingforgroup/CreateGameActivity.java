@@ -195,8 +195,7 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         postData.delegate = this;
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
-        String url = "http://looking-for-group-looking-for-group" +
-                ".193b.starter-ca-central-1.openshiftapps.com/matches";
+        String url = R.string.url + "matches";
         String jsonData = getFormattedDataString();
         Log.d("dee", jsonData);
         if(jsonData == "") {

@@ -74,7 +74,7 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
     private void getMatchData() {
         GetData getData = new GetData();
         getData.delegate = this;
-        String URL = "http://looking-for-group-looking-for-group.193b.starter-ca-central-1.openshiftapps.com/matches";
+        String URL = R.string.url + "matches";
         try {
             getData.execute(URL);
         } catch (Exception e) {
