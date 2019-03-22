@@ -10,11 +10,13 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -33,13 +35,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import okhttp3.MediaType;
 
 //TODO: Remake ResisterUserActivity to be a fragment of LoginActivity
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
+    private String currentPhotoPath;
+    private Uri photoURI;
     private String email;
     private String name;
     private String password;
@@ -69,7 +76,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
 
         addListenerOnButton();
 
-        Button buttonRegister = (Button)findViewById(R.id.btn_go_to_register);
+        Button buttonRegister = (Button)findViewById(R.id.btn_register);
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -176,10 +183,11 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                     public void onClick(DialogInterface dialog, int item) {
                         if (options[item].equals("Take Photo")) {
                             dialog.dismiss();
-                            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            /*Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                                 startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
-                            }
+                            }*/
+                            dispatchTakePictureIntent();
                         } else if (options[item].equals("Choose From Gallery")) {
                             dialog.dismiss();
                             Intent pickPhoto = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -196,24 +204,46 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         }
     }
 
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                // Error occurred while creating the File
+                e.printStackTrace();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
+            }
+        }
+    }
+
     // TODO: Rescale images.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Uri selectedImage = null;
         if (requestCode == PICK_IMAGE_CAMERA && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            bitmap = (Bitmap) extras.get("data");
+            selectedImage = photoURI;
         }
         else if (requestCode == PICK_IMAGE_GALLERY && resultCode == RESULT_OK) {
-            Uri selectedImage = data.getData();
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                Log.e("Activity", "Pick from Gallery::>>> ");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            selectedImage = data.getData();
+        }
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            Log.e("Activity", "Pick from Gallery::>>> ");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         Bitmap finalBitmap = bitmapScaler(bitmap);
         profileAvatar.setImageBitmap(finalBitmap);
@@ -240,6 +270,22 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         } catch (Exception e) {
             Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
         }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 
     private String getFormattedDataString() { //TODO: Remove this function if SubmitMixedData works.
