@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.example.daniel.lookingforgroup.HelpClasses.Constants;
 import com.example.daniel.lookingforgroup.HelpClasses.FetchAddressIntentService;
+import com.example.daniel.lookingforgroup.HelpClasses.TakePhoto;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -45,7 +46,6 @@ import okhttp3.MediaType;
 //TODO: Remake ResisterUserActivity to be a fragment of LoginActivity
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
-    private String currentPhotoPath;
     private Uri photoURI;
     private String email;
     private String name;
@@ -240,7 +240,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         try {
             bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 1, bytes);
             Log.e("Activity", "Pick from Gallery::>>> ");
         } catch (Exception e) {
             e.printStackTrace();
@@ -260,11 +260,10 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
     private void persistImage(Bitmap bitmap, String name) {
         File filesDir = getApplicationContext().getFilesDir();
         imageFile = new File(filesDir, name + ".jpg");
-
         OutputStream os;
         try {
             os = new FileOutputStream(imageFile);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 1, os);
             os.flush();
             os.close();
         } catch (Exception e) {
@@ -282,9 +281,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath();
         return image;
     }
 
@@ -395,31 +391,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
                         }
                     });
         }
-    }
-
-    private void fetchAddressButtonHander() {
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        lastLocation = location;
-
-                        // In some rare cases the location returned can be null
-                        if (lastLocation == null) {
-                            return;
-                        }
-
-                        if (!Geocoder.isPresent()) {
-                            Toast.makeText(RegisterUserActivity.this,
-                                    R.string.no_geocoder_available,
-                                    Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        // Start service and update UI to reflect new location
-                        startIntentService();
-                    }
-                });
     }
 
     protected void startIntentService() {
