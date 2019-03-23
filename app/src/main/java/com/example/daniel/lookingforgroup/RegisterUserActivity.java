@@ -47,11 +47,11 @@ import okhttp3.MediaType;
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
     private Uri photoURI;
+    private File imageFile = null;
     private String email;
     private String name;
     private String password;
     private String passwordRepeat;
-    private File imageFile = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;

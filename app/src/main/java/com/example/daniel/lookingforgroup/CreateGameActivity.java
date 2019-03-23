@@ -8,9 +8,11 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,10 +28,17 @@ import com.example.daniel.lookingforgroup.matches.LobbyActivity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class CreateGameActivity extends AppCompatActivity implements AsyncResponse {
 
     private Bitmap bitmap;
+    private Uri photoURI;
+    private File imageFile = null;
     private File destination = null;
     private String imgPath = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
@@ -120,10 +129,11 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
                     public void onClick(DialogInterface dialog, int item) {
                         if (options[item].equals("Take Photo")) {
                             dialog.dismiss();
-                            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            /*Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                                 startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
-                            }
+                            }*/
+                            dispatchTakePictureIntent();
                         } else if (options[item].equals("Choose From Gallery")) {
                             dialog.dismiss();
                             Intent pickPhoto = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -140,37 +150,84 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_IMAGE_CAMERA && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            gameAvatar.setImageBitmap(imageBitmap);
-        }
-        else if (requestCode == PICK_IMAGE_GALLERY && resultCode == RESULT_OK) {
-            Uri selectedImage = data.getData();
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
             try {
-                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, bytes);
-                Log.e("Activity", "Pick from Gallery::>>> ");
-
-                imgPath = getRealPathFromURI(selectedImage);
-                destination = new File(imgPath.toString());
-                gameAvatar.setImageBitmap(bitmap);
-
-            } catch (Exception e) {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                // Error occurred while creating the File
                 e.printStackTrace();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
             }
         }
     }
 
-    public String getRealPathFromURI(Uri contentUri) {
-        String[] proj = {MediaStore.Audio.Media.DATA};
-        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
+    // TODO: Rescale images.
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Uri selectedImage = null;
+        if (requestCode == PICK_IMAGE_CAMERA && resultCode == RESULT_OK) {
+            selectedImage = photoURI;
+        }
+        else if (requestCode == PICK_IMAGE_GALLERY && resultCode == RESULT_OK) {
+            selectedImage = data.getData();
+        }
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 1, bytes);
+            Log.e("Activity", "Pick from Gallery::>>> ");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Bitmap finalBitmap = bitmapScaler(bitmap);
+        gameAvatar.setImageBitmap(finalBitmap);
+        persistImage(finalBitmap, "profilePic");
+        //checkLocation();
+    }
+
+    private Bitmap bitmapScaler(Bitmap bitmap) {
+        final int goodWidth = 500;
+        float factor = goodWidth / (float) bitmap.getWidth();
+        return Bitmap.createScaledBitmap(bitmap, goodWidth, (int) (bitmap.getHeight() * factor), true);
+    }
+
+    private void persistImage(Bitmap bitmap, String name) {
+        File filesDir = getApplicationContext().getFilesDir();
+        imageFile = new File(filesDir, name + ".jpg");
+        OutputStream os;
+        try {
+            os = new FileOutputStream(imageFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 1, os);
+            os.flush();
+            os.close();
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Error writing bitmap", e);
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        return image;
     }
 
     //get gameAvatar, get textDescription, get gameName. Send to database.
@@ -203,7 +260,6 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         postData.setSP(sp);
         String url = baseUrl + "matches";
         String jsonData = getFormattedDataString();
-        Log.d("dee", jsonData);
         if(jsonData == "") {
             return;
         }
