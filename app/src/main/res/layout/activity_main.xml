@@ -16,6 +16,7 @@
         android:ems="10"
         android:hint="@string/name_game"
         android:inputType="textPersonName"
+        android:maxLength="50"
         app:layout_constraintEnd_toStartOf="@+id/button"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"

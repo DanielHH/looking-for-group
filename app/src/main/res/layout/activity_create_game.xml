@@ -16,18 +16,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
-    <TextView
+    <EditText
         android:id="@+id/text_game_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
-        android:layout_marginTop="32dp"
-        android:maxLines="3"
-        android:text="TextView"
+        android:maxWidth="220sp"
+        android:maxLength="50"
+        android:hint="@string/add_game_name"
+        android:textColorHint="@color/colorHintText"
         android:textColor="@android:color/black"
         android:textSize="24dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/edit_location"
         app:layout_constraintStart_toEndOf="@+id/image_game_avatar"
         app:layout_constraintEnd_toEndOf="parent"/>
 
