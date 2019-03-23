@@ -22,6 +22,8 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.daniel.lookingforgroup.matches.LobbyActivity;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 
@@ -217,9 +219,15 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
     public void processFinish(String response) {
         if(response.equals("HTTP 200")) {
             Toast.makeText(this, "Added game successfully", Toast.LENGTH_SHORT).show();
+            goToMain();
         }
         else {
             Toast.makeText(this, "This did not go well!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void goToMain() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }
