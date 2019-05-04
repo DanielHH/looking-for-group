@@ -24,8 +24,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         super.onCreate(savedInstanceState);
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         String token = sp.getString("token", "");
-        setContentView(R.layout.activity_main);
-        /*
+        //setContentView(R.layout.activity_main);
         if(sp.contains("token") && (token.length())>30) {
             setContentView(R.layout.activity_main);
         }
@@ -33,7 +32,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
         }
-        */
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
