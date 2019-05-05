@@ -266,7 +266,7 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         OutputStream os;
         try {
             os = new FileOutputStream(imageFile);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 1, os);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
             os.flush();
             os.close();
         } catch (Exception e) {

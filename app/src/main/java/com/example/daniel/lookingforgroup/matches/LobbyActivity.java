@@ -55,6 +55,9 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_match_lobby);
+
+        baseUrl = getResources().getString(R.string.url);
+
         sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
 
         rvComments = (RecyclerView) findViewById(R.id.lobbyComments);
@@ -110,8 +113,6 @@ public class LobbyActivity extends AppCompatActivity implements AsyncResponse {
         locationView.setText(location);
         numView.setText(String.valueOf(curPlayers));
         denView.setText(String.valueOf(maxPlayers));
-
-        baseUrl = getResources().getString(R.string.url);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

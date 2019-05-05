@@ -37,6 +37,8 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_games);
 
+        baseUrl = getResources().getString(R.string.url);
+
         rvMatches = (RecyclerView) findViewById(R.id.matches_view);
         getMatchData();
         // This happens after, as we must set the RecyclerView before a response comes in
@@ -46,8 +48,6 @@ public class OpenGamesActivity extends AppCompatActivity implements AsyncRespons
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        baseUrl = getResources().getString(R.string.url);
     }
 
     @Override
