@@ -14,3 +14,4 @@ venv
 app/.idea
 app/gradle
 app/local
+/backend/app.db
