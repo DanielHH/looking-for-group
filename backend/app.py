@@ -818,4 +818,8 @@ def nonspecific_error(err):
 
 if __name__ == "__main__":
     app.debug = debug_flag
-    app.run(os.environ.get('PORT'))
+    #app.run(os.environ.get('PORT'))
+    post_dummy_data()
+    #db.drop_all()
+    #db.create_all()
+    app.run(host='0.0.0.0')

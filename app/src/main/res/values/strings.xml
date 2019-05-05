@@ -1,6 +1,7 @@
 <resources>
     /*url*/
-    <string name="url">https://looking-for-group-boardgames.herokuapp.com/</string>
+    <!--<string name="url">https://looking-for-group-boardgames.herokuapp.com/</string>-->
+    <string name="url">http://192.168.1.2:5000/</string>
     
     /*Main page*/
     <string name="app_name">LookingForGroup</string>
