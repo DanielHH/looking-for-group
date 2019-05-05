@@ -62,6 +62,8 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_page);
 
+        baseUrl = getResources().getString(R.string.url);
+
         name = findViewById(R.id.text_profile_name);
         profilePicture = findViewById(R.id.image_profile_picture);
         userId = getIntent().getStringExtra("EXTRA_USER_ID");
@@ -79,8 +81,6 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
                 selectImage();
             }
         });
-
-        baseUrl = getResources().getString(R.string.url);
     }
 
     // Select image from camera and gallery
