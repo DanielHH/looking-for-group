@@ -27,7 +27,6 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
             @Override
             public void onClick(View view) {
                 newSubmitData();
-                //testLogin();
             }
         });
         baseUrl = getResources().getString(R.string.url);
@@ -35,15 +34,6 @@ public class LoginActivity extends AppCompatActivity implements LoginResponse {
 
     public void goToRegister(View view) {
         Intent intent = new Intent(this, RegisterUserActivity.class);
-        startActivity(intent);
-    }
-
-    private void testLogin() {
-        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("token", "asdfasdfasdfasdfasdfasdfasdfasdf");
-        editor.apply(); // TODO: remove this line.
-        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 

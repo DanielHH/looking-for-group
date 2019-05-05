@@ -11,24 +11,20 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
 app = Flask(__name__)
-db = SQLAlchemy(app)
 
 if 'NAMESPACE' in os.environ and os.environ['NAMESPACE'] == 'heroku':
     db_uri = os.environ['DATABASE_URL']
     debug_flag = False
 else:
     db_path = os.path.join(os.path.dirname(__file__), 'app.db')
-    db.uri = 'sqlite:///{}'.format(db_path)
+    db_uri = 'sqlite:///{}'.format(db_path)
     debug_flag = True
 
-"""
-if "OPENSHIFT_POSTGRESQL_DB_URL" in os.environ:
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ['OPENSHIFT_POSTGRESQL_DB_URL']
-else:
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/test.db"
-"""
+app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
 
 app.config['SECRET_KEY'] = 'i folded my soldier well in his blanket'
+
+db = SQLAlchemy(app)
 
 APPLICATION_URL = "https://looking-for-group-boardgames.herokuapp.com"
 
@@ -820,9 +816,10 @@ def nonspecific_error(err):
     return 'HTTP 500: ' + str(err), 500
 
 
-if __name__ == '__main__':
-    app.debug = True
-    app.run(host='0.0.0.0', port=8080)
-
-    db.drop_all()
-    db.create_all()
+if __name__ == "__main__":
+    app.debug = debug_flag
+    post_dummy_data()
+    #db.drop_all()
+    #db.create_all()
+    app.run(os.environ.get('PORT'))
+    #app.run(host='0.0.0.0')

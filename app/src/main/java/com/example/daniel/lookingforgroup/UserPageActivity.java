@@ -81,7 +81,6 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
                 selectImage();
             }
         });
-
     }
 
     // Select image from camera and gallery
