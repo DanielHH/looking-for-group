@@ -821,5 +821,5 @@ if __name__ == "__main__":
     post_dummy_data()
     #db.drop_all()
     #db.create_all()
-    #app.run(os.environ.get('PORT'))
-    app.run(host='0.0.0.0')
+    app.run(os.environ.get('PORT'))
+    #app.run(host='0.0.0.0')
