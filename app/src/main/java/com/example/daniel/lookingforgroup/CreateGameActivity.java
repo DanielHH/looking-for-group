@@ -51,7 +51,7 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
     ImageView gameAvatar;
     String gameName;
     String location;
-    Integer maxPlayers;
+    Integer maxPlayers = 2;
 
 
     @Override
