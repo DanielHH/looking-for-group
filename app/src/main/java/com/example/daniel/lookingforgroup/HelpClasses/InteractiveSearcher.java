@@ -1,0 +1,144 @@
+package com.example.daniel.lookingforgroup.HelpClasses;
+
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.ScrollView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.daniel.lookingforgroup.R;
+import com.example.daniel.lookingforgroup.UserPageActivity;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+public class InteractiveSearcher extends LinearLayout {
+
+    private String baseUrl;
+    private Context ctx;
+    private EditText searchBar;
+    private PopUpList popUpList;
+    private PopupWindow popupWindow;
+    private int requestId;
+    final ArrayList<String> emails = new ArrayList<>();
+    private RequestQueue queue;
+    private boolean markChild = false;
+
+    public InteractiveSearcher(Context context) {
+        super(context);
+        this.ctx = context;
+        init();
+    }
+
+    public InteractiveSearcher(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
+        this.ctx = context;
+        init();
+    }
+
+    private void init() {
+
+        baseUrl = getResources().getString(R.string.url);
+
+        setOrientation(VERTICAL);
+        queue = Volley.newRequestQueue(ctx);
+        searchBar = new EditText(ctx);
+
+        popUpList = new PopUpList(ctx);
+        popUpList.setParent(this);
+
+        ScrollView scrollView = new ScrollView(ctx);
+        scrollView.addView(popUpList);
+
+        popupWindow = new PopupWindow(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        popupWindow.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+        popupWindow.setContentView(scrollView);
+        popupWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
+
+        this.addView(searchBar);
+
+        textWatcher();
+    }
+
+    public void showPopupList(){ popupWindow.showAsDropDown(searchBar); }
+
+    private void textWatcher() {
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                getMatchingNames(charSequence.toString(), markChild);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {}
+        });
+    }
+
+    public void getMatchingNames(String name, final boolean markChild){
+        popUpList.clearNames();
+        requestId++;
+
+        final String url = baseUrl + "getusers/" + requestId + '/' + name;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            if (response.getInt("id") == requestId) {
+                                JSONArray users = response.getJSONArray("users");
+                                for (int i = 0; i < users.length(); i++) {
+                                    emails.add(users.get(i).toString());
+                                }
+                                popUpList.setNames(emails);
+                                popUpList.markChild(markChild);
+                                showPopupList();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("dee: ", error.toString());
+                    }
+                });
+        queue.add(jsonObjectRequest);
+    }
+
+    public void fillSearchBar(String userEmail){
+        Intent intent = new Intent(ctx, UserPageActivity.class);
+        String email = userEmail;
+        intent.putExtra("EXTRA_USER_ID", email);
+        ctx.startActivity(intent);
+    }
+
+    public void setMarkChild() {
+        markChild = false;
+    }
+}

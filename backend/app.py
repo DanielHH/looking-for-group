@@ -350,6 +350,24 @@ def get_profile_picture(user_id):
         return abort(405)
 
 
+@app.route("/getuserwithemail/<user_email>/image", methods=["GET"])
+def get_profile_picture_with_email(user_email):
+    if request.method == "GET":
+        user = User.query.filter_by(email=user_email).first()
+
+        if user and user.picture:
+            file = "." + url_for('uploaded_file', filename=user.picture)
+            # This works since url_for requires a relative path
+            return send_file(file)
+
+        else:
+            return abort(403)
+            # The requested user does not exist, or the picture has not been uploaded
+
+    else:
+        return abort(405)
+
+
 @app.route("/images/<user_id>", methods=["POST"])
 @verify_login
 def post_profile_picture(user_id):
@@ -416,6 +434,67 @@ def view_profile(user_id):
 
         return json.dumps(data)
 
+    else:
+        return abort(405)
+
+
+@app.route("/getuserwithemail/<user_email>", methods=["GET"])
+def view_profile_with_email(user_email):
+    user = User.query.filter_by(email=user_email).first()
+    if not user:
+        return abort(400)
+
+    if request.method == "GET":
+        data = {'email': user.email,
+                'name': user.name}
+
+        match_list = []
+        for match in Match.query.filter(Match.played_by.any(email=user_email)).all():
+            match_data = {'location': match.name_location,
+                          'game_name': match.game_name,
+                          'created_date': match.created_date,
+                          'cur_players': match.cur_players,
+                          'max_players': match.max_players,
+                          'match_id': match.id,
+                          # 'started_by': match.started_by,
+                          'game_on_date': match.game_on_date}
+            match_list.append(match_data)
+
+        data['matches_played'] = match_list
+
+        # TODO: Fix follows for users
+        """
+        follows_list = []
+        for user in User.query.filter(User.follows.any(id=user_id)).all():
+            user_data = {'id': user.id,
+                         'email': user.email,
+                         'name': user.name,
+                         'picture': user.picture}
+
+            follows_list.append(user_data)
+
+        data['follows'] = follows_list
+        """
+
+        return json.dumps(data)
+
+    else:
+        return abort(405)
+
+
+@app.route("/getusers/<request_id>/<user_name>", methods=["GET"])
+def get_users(request_id, user_name):
+    users = User.query.all()
+    if not users:
+        return abort(400)
+
+    elif request.method == "GET":
+        user_list = []
+        for user in User.query.filter(User.name.like(user_name+'%')).all():
+            user_list.append(user.email)
+        
+        data = {'id': request_id, 'users': user_list}
+        return json.dumps(data)
     else:
         return abort(405)
 
