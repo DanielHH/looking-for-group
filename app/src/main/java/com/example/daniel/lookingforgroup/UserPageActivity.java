@@ -75,12 +75,16 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         rvMatches.setLayoutManager(new LinearLayoutManager(this));
 
         //TODO: Set an if-case here which checks whether this is my profile or someone else's.
-        profilePicture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                selectImage();
-            }
-        });
+        SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        String myId = sp.getString("userId", "");
+        if (userId.equals(myId)) {
+            profilePicture.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    selectImage();
+                }
+            });
+        }
     }
 
     // Select image from camera and gallery
