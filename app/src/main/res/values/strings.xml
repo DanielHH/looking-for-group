@@ -19,6 +19,8 @@
 
     /*Create new game page*/
     <string name="add_game_name">Add a game name!</string>
+
+    <string name="add_current_location">Use current location</string>
     <string name="add_location">Add a location</string>
     <string name="button_save">Save</string>
 

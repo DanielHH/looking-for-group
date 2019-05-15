@@ -7,8 +7,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -24,7 +28,12 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.daniel.lookingforgroup.HelpClasses.Constants;
+import com.example.daniel.lookingforgroup.HelpClasses.FetchAddressIntentService;
 import com.example.daniel.lookingforgroup.matches.LobbyActivity;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,6 +54,7 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
+    private int REQUEST_LOCATION = 6;
 
     private String baseUrl;
 
@@ -53,6 +63,10 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
     String location;
     Integer maxPlayers = 2;
 
+    private FusedLocationProviderClient fusedLocationClient;
+
+    protected Location lastLocation;
+    private CreateGameActivity.AddressResultReceiver mResultReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +90,13 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         np.setMaxValue(100);
         np.setOnValueChangedListener(onValueChangeListener);
 
+        Button buttonAddLocation = findViewById(R.id.button_get_address);
+        buttonAddLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkLocation();
+            }
+        });
         Button buttonSave = findViewById(R.id.btn_save);
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,6 +104,8 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
                 submitData();
             }
         });
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     NumberPicker.OnValueChangeListener onValueChangeListener =
@@ -286,4 +309,77 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
+
+    private void checkLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        } else {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            lastLocation = location;
+
+                            // In some rare cases the location returned can be null
+                            if (lastLocation == null) {
+                                return;
+                            }
+
+                            if (!Geocoder.isPresent()) {
+                                Toast.makeText(CreateGameActivity.this,
+                                        R.string.no_geocoder_available,
+                                        Toast.LENGTH_LONG).show();
+                                return;
+                            }
+
+                            // Start service and update UI to reflect new location
+                            startIntentService();
+                        }
+                    });
+        }
+    }
+
+    protected void startIntentService() {
+        mResultReceiver = new AddressResultReceiver(new android.os.Handler());
+        Intent intent = new Intent(this, FetchAddressIntentService.class);
+        intent.putExtra(Constants.RECEIVER, mResultReceiver);
+        intent.putExtra(Constants.LOCATION_DATA_EXTRA, lastLocation);
+        startService(intent);
+    }
+
+    class AddressResultReceiver extends ResultReceiver {
+        public AddressResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            if (resultData == null) {
+                return;
+            }
+
+            // Display the address string
+            // or an error message sent from the intent service.
+            String addressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
+            if (addressOutput == null) {
+                addressOutput = "";
+            }
+            //displayAddressOutput();
+            EditText tAddressImage = findViewById(R.id.edit_location);
+            tAddressImage.setText(addressOutput);
+
+            // Show a toast message if an address was found.
+            if (resultCode == Constants.SUCCESS_RESULT) {
+                //showToast(getString(R.string.address_found));
+            }
+
+        }
+    }
+
+
 }
