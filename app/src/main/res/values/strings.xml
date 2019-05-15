@@ -1,13 +1,14 @@
 <resources>
     /*url*/
-    <string name="url">https://looking-for-group-boardgames.herokuapp.com/</string>
-    <!--<string name="url">http://192.168.1.2:5000/</string>-->
+    <!--<string name="url">https://looking-for-group-boardgames.herokuapp.com/</string>-->
+    <string name="url">http://192.168.1.2:5000/</string>
     
     /*Main page*/
     <string name="app_name">LookingForGroup</string>
     <string name="action_settings">Settings</string>
     <string name="button_games">Games</string>
     <string name="name_game">Name your game!</string>
+    <string name="search_players">Look up what other players are up to!</string>
     <string name="button_create_game">Create new game</string>
     <string name="button_my_profile"> My Profile</string>
     <string name="button_logout">Log out</string>

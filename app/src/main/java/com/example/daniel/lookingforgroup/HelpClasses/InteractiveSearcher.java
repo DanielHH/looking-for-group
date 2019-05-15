@@ -40,7 +40,6 @@ public class InteractiveSearcher extends LinearLayout {
     private int requestId;
     final ArrayList<String> emails = new ArrayList<>();
     private RequestQueue queue;
-    private boolean markChild = false;
 
     public InteractiveSearcher(Context context) {
         super(context);
@@ -79,24 +78,28 @@ public class InteractiveSearcher extends LinearLayout {
         textWatcher();
     }
 
-    public void showPopupList(){ popupWindow.showAsDropDown(searchBar); }
+    public void showPopupList() {
+        popupWindow.showAsDropDown(searchBar);
+    }
 
     private void textWatcher() {
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                getMatchingNames(charSequence.toString(), markChild);
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
             }
 
             @Override
-            public void afterTextChanged(Editable editable) {}
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                getMatchingNames(charSequence.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
         });
     }
 
-    public void getMatchingNames(String name, final boolean markChild){
+    public void getMatchingNames(String name) {
         popUpList.clearNames();
         requestId++;
 
@@ -114,7 +117,6 @@ public class InteractiveSearcher extends LinearLayout {
                                     emails.add(users.get(i).toString());
                                 }
                                 popUpList.setNames(emails);
-                                popUpList.markChild(markChild);
                                 showPopupList();
                             }
                         } catch (JSONException e) {
@@ -131,14 +133,10 @@ public class InteractiveSearcher extends LinearLayout {
         queue.add(jsonObjectRequest);
     }
 
-    public void fillSearchBar(String userEmail){
+    public void goToUserPage(String userEmail) {
         Intent intent = new Intent(ctx, UserPageActivity.class);
         String email = userEmail;
         intent.putExtra("EXTRA_USER_ID", email);
         ctx.startActivity(intent);
-    }
-
-    public void setMarkChild() {
-        markChild = false;
     }
 }

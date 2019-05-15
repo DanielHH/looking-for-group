@@ -86,13 +86,6 @@ public class PopUpList extends LinearLayout {
     }
 
     public void selectChild(String name){
-        parent.fillSearchBar(name);
-    }
-
-    public void markChild(boolean markChild){
-        if (markChild) {
-            nameRows.get(0).setBackgroundColor(Color.GRAY);
-            parent.setMarkChild();
-        }
+        parent.goToUserPage(name);
     }
 }
