@@ -1,7 +1,6 @@
 package com.example.daniel.lookingforgroup.HelpClasses;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.annotation.Nullable;

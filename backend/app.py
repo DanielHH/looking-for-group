@@ -332,6 +332,19 @@ def login_user():
         return abort(405)
 
 
+@app.route("/getidwithemail/<user_email>", methods=["GET"])
+def get_user_id_with_email(user_email):
+    if request.method == "GET":
+        user = User.query.filter_by(email=user_email).first()
+        if user:
+            data = {'id': user.id}
+            return json.dumps(data)
+        else:
+            return abort(403)
+    else:
+        return abort(405)
+
+
 @app.route("/user/<user_id>/image", methods=["GET"])
 def get_profile_picture(user_id):
     if request.method == "GET":
@@ -349,7 +362,7 @@ def get_profile_picture(user_id):
     else:
         return abort(405)
 
-
+"""
 @app.route("/getuserwithemail/<user_email>/image", methods=["GET"])
 def get_profile_picture_with_email(user_email):
     if request.method == "GET":
@@ -366,7 +379,7 @@ def get_profile_picture_with_email(user_email):
 
     else:
         return abort(405)
-
+"""
 
 @app.route("/images/<user_id>", methods=["POST"])
 @verify_login
@@ -437,7 +450,7 @@ def view_profile(user_id):
     else:
         return abort(405)
 
-
+"""
 @app.route("/getuserwithemail/<user_email>", methods=["GET"])
 def view_profile_with_email(user_email):
     user = User.query.filter_by(email=user_email).first()
@@ -462,24 +475,11 @@ def view_profile_with_email(user_email):
 
         data['matches_played'] = match_list
 
-        # TODO: Fix follows for users
-        """
-        follows_list = []
-        for user in User.query.filter(User.follows.any(id=user_id)).all():
-            user_data = {'id': user.id,
-                         'email': user.email,
-                         'name': user.name,
-                         'picture': user.picture}
-
-            follows_list.append(user_data)
-
-        data['follows'] = follows_list
-        """
-
         return json.dumps(data)
 
     else:
         return abort(405)
+"""
 
 
 @app.route("/getusers/<request_id>/<user_name>", methods=["GET"])
@@ -845,6 +845,8 @@ def post_dummy_data():
     db.session.add(User('user@email.com', 'user', 'password'))
     db.session.add(User('eriny656@student.liu.se', 'eric', 'password'))
     db.session.add(User('danhe178@student.liu.se', 'daniel', 'password'))
+    db.session.add(User('davka234@student.liu.se', 'david', 'password'))
+    db.session.add(User('dagla547@student.liu.se', 'dag', 'password'))
 
     db.session.commit()
 

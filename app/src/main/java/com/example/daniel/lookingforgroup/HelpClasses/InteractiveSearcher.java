@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -21,6 +22,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.daniel.lookingforgroup.AsyncResponse;
+import com.example.daniel.lookingforgroup.GetData;
 import com.example.daniel.lookingforgroup.R;
 import com.example.daniel.lookingforgroup.UserPageActivity;
 
@@ -30,7 +33,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class InteractiveSearcher extends LinearLayout {
+public class InteractiveSearcher extends LinearLayout implements AsyncResponse {
 
     private String baseUrl;
     private Context ctx;
@@ -124,7 +127,6 @@ public class InteractiveSearcher extends LinearLayout {
                         }
                     }
                 }, new Response.ErrorListener() {
-
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.d("dee: ", error.toString());
@@ -133,10 +135,32 @@ public class InteractiveSearcher extends LinearLayout {
         queue.add(jsonObjectRequest);
     }
 
+
     public void goToUserPage(String userEmail) {
-        Intent intent = new Intent(ctx, UserPageActivity.class);
-        String email = userEmail;
-        intent.putExtra("EXTRA_USER_ID", email);
-        ctx.startActivity(intent);
+        GetData getData = new GetData();
+        getData.delegate = this;
+        String url = baseUrl + "getidwithemail/" + userEmail;
+        try {//execute the async task
+            getData.execute(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void processFinish(String response) {
+        //Handle the response.
+        System.out.println(response);
+        JSONObject userData;
+        String userId;
+        try {
+            userData = new JSONObject(response);
+            userId = userData.getString("id");
+            Intent intent = new Intent(ctx, UserPageActivity.class);
+            intent.putExtra("EXTRA_USER_ID", userId);
+            ctx.startActivity(intent);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

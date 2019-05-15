@@ -49,7 +49,6 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     TextView name;
     ImageView profilePicture;
     String userId;
-    Boolean userIdIsEmail = false;
 
     String email;
 
@@ -68,9 +67,6 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
         name = findViewById(R.id.text_profile_name);
         profilePicture = findViewById(R.id.image_profile_picture);
         userId = getIntent().getStringExtra("EXTRA_USER_ID");
-        if (userId.contains("@")) {
-            userIdIsEmail = true;
-        }
         rvMatches = (RecyclerView) findViewById(R.id.my_matches_view);
 
         getUserData(userId);
@@ -200,12 +196,8 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     public void getUserData(String userId) {
         GetData getData = new GetData();
         getData.delegate = this;
-        String url = "";
-        if(userIdIsEmail){
-            url = baseUrl + "getuserwithemail/" + userId;
-        } else {
-            url = baseUrl + "user/" + userId;
-        }
+        String url = baseUrl + "user/" + userId;
+
         try {//execute the async task
             getData.execute(url);
         } catch (Exception e) {
@@ -258,12 +250,7 @@ public class UserPageActivity extends AppCompatActivity implements AsyncResponse
     public void getImageData(String userId) {
         GetImageData getImageData = new GetImageData();
         getImageData.delegate = this;
-        String url = "";
-        if(userIdIsEmail){
-            url = baseUrl + "getuserwithemail/" + userId + "/image";
-        } else {
-            url = baseUrl + "user/" + userId + "/image";
-        }
+        String url = baseUrl + "user/" + userId + "/image";
         try {//execute the async task
             getImageData.execute(url);
         } catch (Exception e) {
