@@ -48,8 +48,6 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
     private Bitmap bitmap;
     private Uri photoURI;
     private File imageFile = null;
-    private File destination = null;
-    private String imgPath = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
@@ -152,10 +150,6 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
                     public void onClick(DialogInterface dialog, int item) {
                         if (options[item].equals("Take Photo")) {
                             dialog.dismiss();
-                            /*Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                                startActivityForResult(takePictureIntent, PICK_IMAGE_CAMERA);
-                            }*/
                             dispatchTakePictureIntent();
                         } else if (options[item].equals("Choose From Gallery")) {
                             dialog.dismiss();
@@ -217,7 +211,6 @@ public class CreateGameActivity extends AppCompatActivity implements AsyncRespon
         Bitmap finalBitmap = bitmapScaler(bitmap);
         gameAvatar.setImageBitmap(finalBitmap);
         persistImage(finalBitmap, "profilePic");
-        //checkLocation();
     }
 
     private Bitmap bitmapScaler(Bitmap bitmap) {

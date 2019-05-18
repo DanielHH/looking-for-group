@@ -49,8 +49,6 @@ public class GetData extends AsyncTask<String, Void, String> {
     }
 
     protected void onPostExecute(String result) {
-        System.out.println("Response: " + result);
-        //TODO: Handle this response
         delegate.processFinish(result);
     }
 }
