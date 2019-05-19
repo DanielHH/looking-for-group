@@ -102,11 +102,11 @@ public class InteractiveSearcher extends LinearLayout implements AsyncResponse {
         });
     }
 
-    public void getMatchingNames(String name) {
+    public void getMatchingNames(String email) {
         popUpList.clearNames();
         requestId++;
 
-        final String url = baseUrl + "getusers/" + requestId + '/' + name;
+        final String url = baseUrl + "getusers/" + requestId + '/' + email;
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
