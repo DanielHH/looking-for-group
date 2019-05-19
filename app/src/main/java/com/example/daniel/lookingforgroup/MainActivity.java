@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         super.onCreate(savedInstanceState);
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         String token = sp.getString("token", "");
+        //setContentView(R.layout.activity_main);
         if(sp.contains("token") && (token.length())>30) {
             setContentView(R.layout.activity_main);
         }

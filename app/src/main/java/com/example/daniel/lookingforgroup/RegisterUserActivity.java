@@ -47,26 +47,20 @@ import okhttp3.MediaType;
 public class RegisterUserActivity extends AppCompatActivity implements AsyncResponse {
     private Bitmap bitmap;
     private Uri photoURI;
+    private File imageFile = null;
     private String email;
     private String name;
     private String password;
     private String passwordRepeat;
-    private File imageFile = null;
     private final int PICK_IMAGE_CAMERA = 1, PICK_IMAGE_GALLERY = 2;
     private int MY_PERMISSIONS_REQUEST_CAMERA = 3;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 5;
-    private int REQUEST_LOCATION = 6;
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private ImageView profileAvatar;
 
     private String baseUrl;
-
-    private FusedLocationProviderClient fusedLocationClient;
-
-    protected Location lastLocation;
-    private AddressResultReceiver mResultReceiver;
 
 
     @Override
@@ -91,7 +85,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
             }
         });
         baseUrl = getResources().getString(R.string.url);
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     public void goToLogin() {
@@ -105,7 +98,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         SharedPreferences sp = getSharedPreferences("myPrefs", MODE_PRIVATE);
         postData.setSP(sp);
         String url = baseUrl + "user";
-        Log.d("deee", url);
         String jsonData = getFormattedDataString();
 
         try {
@@ -251,7 +243,6 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         Bitmap finalBitmap = bitmapScaler(bitmap);
         profileAvatar.setImageBitmap(finalBitmap);
         persistImage(finalBitmap, "profilePic");
-        checkLocation();
     }
 
     private Bitmap bitmapScaler(Bitmap bitmap) {
@@ -361,77 +352,5 @@ public class RegisterUserActivity extends AppCompatActivity implements AsyncResp
         }
 
         return true;
-    }
-
-    private void checkLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_LOCATION);
-        } else {
-            fusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            lastLocation = location;
-
-                            // In some rare cases the location returned can be null
-                            if (lastLocation == null) {
-                                return;
-                            }
-
-                            if (!Geocoder.isPresent()) {
-                                Toast.makeText(RegisterUserActivity.this,
-                                        R.string.no_geocoder_available,
-                                        Toast.LENGTH_LONG).show();
-                                return;
-                            }
-
-                            // Start service and update UI to reflect new location
-                            startIntentService();
-                        }
-                    });
-        }
-    }
-
-    protected void startIntentService() {
-        mResultReceiver = new AddressResultReceiver(new android.os.Handler());
-        Intent intent = new Intent(this, FetchAddressIntentService.class);
-        intent.putExtra(Constants.RECEIVER, mResultReceiver);
-        intent.putExtra(Constants.LOCATION_DATA_EXTRA, lastLocation);
-        startService(intent);
-    }
-
-    class AddressResultReceiver extends ResultReceiver {
-        public AddressResultReceiver(Handler handler) {
-            super(handler);
-        }
-
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-
-            if (resultData == null) {
-                return;
-            }
-
-            // Display the address string
-            // or an error message sent from the intent service.
-            String addressOutput = resultData.getString(Constants.RESULT_DATA_KEY);
-            if (addressOutput == null) {
-                addressOutput = "";
-            }
-            //displayAddressOutput();
-            Log.d("diii: ", addressOutput);
-            TextView tAddressImage = findViewById(R.id.textAddressImage);
-            tAddressImage.setText(addressOutput);
-
-            // Show a toast message if an address was found.
-            if (resultCode == Constants.SUCCESS_RESULT) {
-                //showToast(getString(R.string.address_found));
-            }
-
-        }
     }
 }
