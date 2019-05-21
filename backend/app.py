@@ -482,15 +482,15 @@ def view_profile_with_email(user_email):
 """
 
 
-@app.route("/getusers/<request_id>/<user_name>", methods=["GET"])
-def get_users(request_id, user_name):
+@app.route("/getusers/<request_id>/<user_email>", methods=["GET"])
+def get_users(request_id, user_email):
     users = User.query.all()
     if not users:
         return abort(400)
 
     elif request.method == "GET":
         user_list = []
-        for user in User.query.filter(User.name.like(user_name+'%')).all():
+        for user in User.query.filter(User.email.like(user_email+'%')).all():
             user_list.append(user.email)
         
         data = {'id': request_id, 'users': user_list}
