@@ -18,7 +18,7 @@
 * Connect an android device to your computer
 * Press run in android studio and select your connected device.
 
-## SERVER
+## Server
 
 * Start a terminal
 * Create a virtual environment for this project.
