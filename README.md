@@ -3,6 +3,7 @@
 ## PREREQUISITES
 * Android studio 3.4
 * Python 3.7
+* Pip 19.0.3
 
 ---
 
