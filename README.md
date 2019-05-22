@@ -14,7 +14,7 @@
 * Open the project in android studio
 * Sync gradle files
 * Add your local ip-adress to
-* Go into res/values/strings.xml and replace [YOUR_URL] i <string name="url">[YOUR_URL]</string> with your local url.
+* Go into res/values/strings.xml and replace [YOUR_URL] i '<string name="url">'[YOUR_URL]'</string>' with your local url.
 * Connect an android device to your computer
 * Press run in android studio and select your connected device.
 
